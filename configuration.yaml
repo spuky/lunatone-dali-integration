@@ -1,0 +1,6 @@
+# Enable debug logging for our integration
+logger:
+  default: info
+  logs:
+    custom_components.dali2_iot: debug
+    custom_components.dali2_iot.discovery: debug 

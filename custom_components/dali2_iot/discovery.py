@@ -7,6 +7,8 @@ import logging
 import socket
 from typing import Any, Final
 
+from homeassistant.core import HomeAssistant
+
 _LOGGER = logging.getLogger(__name__)
 
 DISCOVERY_PORT: Final = 5555
@@ -16,9 +18,10 @@ DISCOVERY_TIMEOUT: Final = 5.0
 class Dali2IotDiscovery:
     """Class to handle discovery of DALI2 IoT devices."""
 
-    def __init__(self) -> None:
+    def __init__(self, hass: HomeAssistant) -> None:
         """Initialize the discovery."""
         self._socket: socket.socket | None = None
+        self._hass = hass
 
     async def discover(self) -> list[dict[str, Any]]:
         """Discover DALI2 IoT devices in the network."""

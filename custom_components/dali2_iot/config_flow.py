@@ -45,7 +45,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         if user_input is None:
             # Try to discover devices
-            discovery = Dali2IotDiscovery()
+            discovery = Dali2IotDiscovery(self.hass)
             self._discovered_devices = await discovery.discover()
 
             if self._discovered_devices:
