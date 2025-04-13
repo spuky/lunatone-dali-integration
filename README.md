@@ -10,6 +10,7 @@ This integration is currently under development and is not yet functional. The b
 - Device communication ❌ (Not implemented)
 - Light control ❌ (Not implemented)
 - Configuration flow ✅ (Basic structure)
+- Auto-discovery ✅ (Basic structure)
 
 This is a custom integration for Home Assistant to control DALI2 IoT devices.
 
@@ -26,10 +27,21 @@ This is a custom integration for Home Assistant to control DALI2 IoT devices.
 
 ## Configuration
 
+The integration can be configured in two ways:
+
+### Auto-discovery (Recommended)
 1. Go to Home Assistant's Configuration > Integrations
 2. Click the "+" button to add a new integration
 3. Search for "DALI2 IoT"
-4. Enter the IP address of your DALI2 IoT device
+4. If a DALI2 IoT device is found on your network, it will appear in the list
+5. Click on the device to add it
+
+### Manual Configuration
+1. Go to Home Assistant's Configuration > Integrations
+2. Click the "+" button to add a new integration
+3. Search for "DALI2 IoT"
+4. Select "Configure manually"
+5. Enter the IP address of your DALI2 IoT device
 
 ## Features
 
