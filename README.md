@@ -29,9 +29,7 @@ This is a custom integration for Home Assistant to control DALI2 IoT devices.
 1. Go to Home Assistant's Configuration > Integrations
 2. Click the "+" button to add a new integration
 3. Search for "DALI2 IoT"
-4. Enter the following information:
-   - Host: IP address of your DALI2 IoT device
-   - Port: Port number (default: 80)
+4. Enter the IP address of your DALI2 IoT device
 
 ## Features
 
