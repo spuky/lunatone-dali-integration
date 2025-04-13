@@ -1,5 +1,16 @@
 # Home Assistant DALI2 IoT Integration
 
+⚠️ **WARNING: WORK IN PROGRESS** ⚠️
+
+This integration is currently under development and is not yet functional. The basic structure is in place, but the actual device communication and control features are not yet implemented.
+
+## Current Status
+- Basic integration structure ✅
+- HACS compatibility ✅
+- Device communication ❌ (Not implemented)
+- Light control ❌ (Not implemented)
+- Configuration flow ❌ (Not implemented)
+
 This is a custom integration for Home Assistant to control DALI2 IoT devices.
 
 ## Installation
