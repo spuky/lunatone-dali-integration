@@ -1,0 +1,10 @@
+{
+  "domain": "dali2_iot",
+  "name": "DALI2 IoT",
+  "documentation": "https://github.com/spuky/dali2_iot",
+  "dependencies": [],
+  "codeowners": ["@spuky"],
+  "requirements": [],
+  "version": "0.1.0",
+  "iot_class": "local_polling"
+} 
