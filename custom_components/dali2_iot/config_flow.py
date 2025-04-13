@@ -43,28 +43,37 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
         """Handle the initial step."""
+        _LOGGER.info("Starting DALI2 IoT configuration flow")
+        
         if user_input is None:
+            _LOGGER.info("No user input, attempting device discovery")
             # Try to discover devices
             discovery = Dali2IotDiscovery(self.hass)
             self._discovered_devices = await discovery.discover()
+            _LOGGER.info("Discovery complete, found %d devices", len(self._discovered_devices))
 
             if self._discovered_devices:
+                _LOGGER.info("Showing device selection form")
                 return await self.async_step_select()
 
+            _LOGGER.info("No devices found, showing manual entry form")
             return self.async_show_form(
                 step_id="user", data_schema=STEP_USER_DATA_SCHEMA
             )
 
+        _LOGGER.info("Processing manual entry: %s", user_input)
         errors = {}
 
         try:
             await validate_input(self.hass, user_input)
         except CannotConnect:
+            _LOGGER.error("Cannot connect to device at %s", user_input[CONF_HOST])
             errors["base"] = "cannot_connect"
         except Exception:  # pylint: disable=broad-except
-            _LOGGER.exception("Unexpected exception")
+            _LOGGER.exception("Unexpected exception during validation")
             errors["base"] = "unknown"
         else:
+            _LOGGER.info("Successfully validated device at %s", user_input[CONF_HOST])
             return self.async_create_entry(title=user_input[CONF_HOST], data=user_input)
 
         return self.async_show_form(
@@ -76,6 +85,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     ) -> FlowResult:
         """Handle the step to select discovered device."""
         if user_input is None:
+            _LOGGER.info("Showing device selection form with %d devices", len(self._discovered_devices))
             return self.async_show_form(
                 step_id="select",
                 data_schema=vol.Schema(
@@ -90,6 +100,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 ),
             )
 
+        _LOGGER.info("Processing selected device: %s", user_input)
         device = next(
             device
             for device in self._discovered_devices
@@ -100,6 +111,7 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         await self.async_set_unique_id(device["host"])
         self._abort_if_unique_id_configured()
 
+        _LOGGER.info("Creating configuration entry for device: %s", device)
         return self.async_create_entry(
             title=device["name"],
             data={CONF_HOST: device["host"]},
