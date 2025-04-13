@@ -9,7 +9,7 @@ This integration is currently under development and is not yet functional. The b
 - HACS compatibility ✅
 - Device communication ❌ (Not implemented)
 - Light control ❌ (Not implemented)
-- Configuration flow ❌ (Not implemented)
+- Configuration flow ✅ (Basic structure)
 
 This is a custom integration for Home Assistant to control DALI2 IoT devices.
 
@@ -32,8 +32,6 @@ This is a custom integration for Home Assistant to control DALI2 IoT devices.
 4. Enter the following information:
    - Host: IP address of your DALI2 IoT device
    - Port: Port number (default: 80)
-   - Username: Device username (default: admin)
-   - Password: Device password
 
 ## Features
 

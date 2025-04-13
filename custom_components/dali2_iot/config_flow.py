@@ -12,11 +12,8 @@ from homeassistant.exceptions import HomeAssistantError
 
 from .const import (
     CONF_HOST,
-    CONF_PASSWORD,
     CONF_PORT,
-    CONF_USERNAME,
     DEFAULT_PORT,
-    DEFAULT_USERNAME,
     DOMAIN,
 )
 
@@ -26,22 +23,16 @@ STEP_USER_DATA_SCHEMA = vol.Schema(
     {
         vol.Required(CONF_HOST): str,
         vol.Required(CONF_PORT, default=DEFAULT_PORT): int,
-        vol.Required(CONF_USERNAME, default=DEFAULT_USERNAME): str,
-        vol.Required(CONF_PASSWORD): str,
     }
 )
 
 class CannotConnect(HomeAssistantError):
     """Error to indicate we cannot connect."""
 
-class InvalidAuth(HomeAssistantError):
-    """Error to indicate there is invalid auth."""
-
 async def validate_input(hass: HomeAssistant, data: dict[str, Any]) -> None:
     """Validate the user input allows us to connect."""
     # TODO: Implement actual validation
     # This is where you would check if you can connect to the device
-    # and if the credentials are valid
     pass
 
 class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
@@ -64,8 +55,6 @@ class ConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await validate_input(self.hass, user_input)
         except CannotConnect:
             errors["base"] = "cannot_connect"
-        except InvalidAuth:
-            errors["base"] = "invalid_auth"
         except Exception:  # pylint: disable=broad-except
             _LOGGER.exception("Unexpected exception")
             errors["base"] = "unknown"
