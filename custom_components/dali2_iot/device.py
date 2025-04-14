@@ -54,11 +54,11 @@ class Dali2IotDevice:
                 async with self._session.get(f"{self._base_url}/info") as response:
                     if response.status == 200:
                         return await response.json()
-                    _LOGGER.error("Failed to get device info: %s", response.status)
-                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
+                    _LOGGER.error("Failed to get device info from %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device at {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Error getting device info: %s", err)
-            raise Dali2IotConnectionError(f"Connection failed: {err}") from err
+            _LOGGER.error("Error getting device info from %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
 
     async def async_get_devices(self) -> list[dict[str, Any]]:
         """Get list of devices from the DALI2 IoT controller."""
@@ -69,11 +69,11 @@ class Dali2IotDevice:
                         data = await response.json()
                         self._devices = data.get("devices", [])
                         return self._devices
-                    _LOGGER.error("Failed to get devices: %s", response.status)
-                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
+                    _LOGGER.error("Failed to get devices from %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device at {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Error getting devices: %s", err)
-            raise Dali2IotConnectionError(f"Connection failed: {err}") from err
+            _LOGGER.error("Error getting devices from %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
 
     async def async_control_device(
         self, device_id: int, data: dict[str, Any]
@@ -87,8 +87,8 @@ class Dali2IotDevice:
                 ) as response:
                     if response.status == 204:
                         return True
-                    _LOGGER.error("Failed to control device: %s", response.status)
-                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
+                    _LOGGER.error("Failed to control device at %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device at {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
-            _LOGGER.error("Error controlling device: %s", err)
-            raise Dali2IotConnectionError(f"Connection failed: {err}") from err 
+            _LOGGER.error("Error controlling device at %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err 

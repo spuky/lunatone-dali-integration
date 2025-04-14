@@ -68,7 +68,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             await device.async_get_info()
         except Dali2IotConnectionError as ex:
-            _LOGGER.error("Error connecting to device: %s", ex)
+            _LOGGER.error("Error connecting to device at %s: %s", self._host, ex)
             errors["base"] = "cannot_connect"
             return self.async_show_form(
                 step_id="user",
@@ -134,7 +134,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
             await device.async_get_info()
         except Dali2IotConnectionError as ex:
-            _LOGGER.error("Error connecting to device: %s", ex)
+            _LOGGER.error("Error connecting to device at %s: %s", selected_host, ex)
             return self.async_show_form(
                 step_id="select",
                 data_schema=vol.Schema(
