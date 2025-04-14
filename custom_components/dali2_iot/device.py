@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import aiohttp
+import asyncio
 import async_timeout
 import logging
 from typing import Any, Final
