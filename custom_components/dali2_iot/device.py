@@ -15,6 +15,9 @@ _LOGGER = logging.getLogger(__name__)
 API_TIMEOUT: Final = 10.0
 BASE_URL: Final = "http://{host}/api/v1"
 
+class Dali2IotConnectionError(Exception):
+    """Error to indicate we cannot connect to the device."""
+
 class Dali2IotDevice:
     """Class to handle a DALI2 IoT device."""
 
@@ -52,9 +55,10 @@ class Dali2IotDevice:
                     if response.status == 200:
                         return await response.json()
                     _LOGGER.error("Failed to get device info: %s", response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error getting device info: %s", err)
-        return {}
+            raise Dali2IotConnectionError(f"Connection failed: {err}") from err
 
     async def async_get_devices(self) -> list[dict[str, Any]]:
         """Get list of devices from the DALI2 IoT controller."""
@@ -66,9 +70,10 @@ class Dali2IotDevice:
                         self._devices = data.get("devices", [])
                         return self._devices
                     _LOGGER.error("Failed to get devices: %s", response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error getting devices: %s", err)
-        return []
+            raise Dali2IotConnectionError(f"Connection failed: {err}") from err
 
     async def async_control_device(
         self, device_id: int, data: dict[str, Any]
@@ -83,6 +88,7 @@ class Dali2IotDevice:
                     if response.status == 204:
                         return True
                     _LOGGER.error("Failed to control device: %s", response.status)
+                    raise Dali2IotConnectionError(f"Invalid response from device: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error controlling device: %s", err)
-        return False 
+            raise Dali2IotConnectionError(f"Connection failed: {err}") from err 

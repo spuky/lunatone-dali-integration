@@ -11,7 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 
 from .const import DOMAIN
-from .device import Dali2IotDevice
+from .device import Dali2IotDevice, Dali2IotConnectionError
 from .discovery import Dali2IotDiscovery
 
 _LOGGER = logging.getLogger(__name__)
@@ -46,7 +46,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     async_get_clientsession(self.hass),
                 )
                 await device.async_get_info()
-            except Exception as ex:
+            except Dali2IotConnectionError as ex:
                 _LOGGER.error("Error connecting to device: %s", ex)
                 errors["base"] = "cannot_connect"
             else:
