@@ -27,7 +27,7 @@ class Dali2IotDiscovery:
         """Discover DALI2 IoT devices in the network."""
         devices: list[dict[str, Any]] = []
         
-        _LOGGER.debug("Starting DALI2 IoT discovery")
+        _LOGGER.info("Starting DALI2 IoT discovery")
         
         # Create UDP socket
         self._socket = socket.socket(socket.AF_INET, socket.SOCK_DGRAM)
@@ -35,19 +35,19 @@ class Dali2IotDiscovery:
         self._socket.settimeout(DISCOVERY_TIMEOUT)
         
         try:
-            _LOGGER.debug("Sending discovery broadcast to port %s", DISCOVERY_PORT)
+            _LOGGER.info("Sending discovery broadcast to port %s", DISCOVERY_PORT)
             # Send broadcast message
             self._socket.sendto(
                 DISCOVERY_MESSAGE.encode(),
                 ("<broadcast>", DISCOVERY_PORT)
             )
             
-            _LOGGER.debug("Waiting for responses for %s seconds", DISCOVERY_TIMEOUT)
+            _LOGGER.info("Waiting for responses for %s seconds", DISCOVERY_TIMEOUT)
             # Wait for responses
             while True:
                 try:
                     data, addr = self._socket.recvfrom(1024)
-                    _LOGGER.debug("Received response from %s: %s", addr[0], data.decode())
+                    _LOGGER.info("Received response from %s: %s", addr[0], data.decode())
                     response = json.loads(data.decode())
                     
                     if response.get("type") == "dali-2-iot":
@@ -60,7 +60,7 @@ class Dali2IotDiscovery:
                     else:
                         _LOGGER.warning("Received unexpected response type from %s: %s", addr[0], response)
                 except socket.timeout:
-                    _LOGGER.debug("Discovery timeout reached")
+                    _LOGGER.info("Discovery timeout reached")
                     break
                 except (json.JSONDecodeError, UnicodeDecodeError) as err:
                     _LOGGER.warning("Invalid response from %s: %s", addr[0], err)

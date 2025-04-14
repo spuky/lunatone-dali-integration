@@ -24,7 +24,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._discovery = None
-        self._discovered_devices = {}
+        self._discovered_devices = []
         self._host = None
         self._name = None
 
@@ -34,75 +34,126 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         """Handle the initial step."""
         errors = {}
 
-        if user_input is not None:
-            self._host = user_input[CONF_HOST]
-            self._name = user_input[CONF_NAME]
+        if user_input is None:
+            # First time through, try to discover devices
+            self._discovery = Dali2IotDiscovery(self.hass)
+            self._discovered_devices = await self._discovery.discover()
+            
+            if self._discovered_devices:
+                # If we found devices, show the selection form
+                return await self.async_step_select()
+            
+            # If no devices found, show manual entry form
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(CONF_HOST): str,
+                        vol.Required(CONF_NAME, default="DALI2 IoT"): str,
+                    }
+                ),
+                errors=errors,
+            )
 
-            # Validate the connection
-            try:
-                device = Dali2IotDevice(
-                    self._host,
-                    self._name,
-                    async_get_clientsession(self.hass),
-                )
-                await device.async_get_info()
-            except Dali2IotConnectionError as ex:
-                _LOGGER.error("Error connecting to device: %s", ex)
-                errors["base"] = "cannot_connect"
-            else:
-                # Check if we already have this host configured
-                await self.async_set_unique_id(self._host)
-                self._abort_if_unique_id_configured()
+        # Handle manual entry
+        self._host = user_input[CONF_HOST]
+        self._name = user_input[CONF_NAME]
 
-                return self.async_create_entry(
-                    title=self._name,
-                    data={
-                        CONF_HOST: self._host,
-                        CONF_NAME: self._name,
-                    },
-                )
-
-        return self.async_show_form(
-            step_id="user",
-            data_schema=vol.Schema(
-                {
-                    vol.Required(CONF_HOST): str,
-                    vol.Required(CONF_NAME, default="DALI2 IoT"): str,
-                }
-            ),
-            errors=errors,
-        )
-
-    async def async_step_discovery(
-        self, discovery_info: dict[str, Any]
-    ) -> FlowResult:
-        """Handle discovery."""
-        self._host = discovery_info["host"]
-        self._name = discovery_info["name"]
+        # Validate the connection
+        try:
+            device = Dali2IotDevice(
+                self._host,
+                self._name,
+                async_get_clientsession(self.hass),
+            )
+            await device.async_get_info()
+        except Dali2IotConnectionError as ex:
+            _LOGGER.error("Error connecting to device: %s", ex)
+            errors["base"] = "cannot_connect"
+            return self.async_show_form(
+                step_id="user",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required(CONF_HOST): str,
+                        vol.Required(CONF_NAME, default="DALI2 IoT"): str,
+                    }
+                ),
+                errors=errors,
+            )
 
         # Check if we already have this host configured
         await self.async_set_unique_id(self._host)
         self._abort_if_unique_id_configured()
 
-        return await self.async_step_confirm()
+        return self.async_create_entry(
+            title=self._name,
+            data={
+                CONF_HOST: self._host,
+                CONF_NAME: self._name,
+            },
+        )
 
-    async def async_step_confirm(
+    async def async_step_select(
         self, user_input: dict[str, Any] | None = None
     ) -> FlowResult:
-        """Handle discovery confirmation."""
-        if user_input is not None:
-            return self.async_create_entry(
-                title=self._name,
-                data={
-                    CONF_HOST: self._host,
-                    CONF_NAME: self._name,
-                },
+        """Handle the step to select discovered device."""
+        if user_input is None:
+            # Show selection form
+            return self.async_show_form(
+                step_id="select",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("device"): vol.In(
+                            {
+                                device["host"]: f"{device['name']} ({device['host']})"
+                                for device in self._discovered_devices
+                            }
+                        )
+                    }
+                ),
             )
 
-        return self.async_show_form(
-            step_id="confirm",
-            description_placeholders={
-                "name": self._name,
-                "host": self._host,
+        # Get selected device
+        selected_host = user_input["device"]
+        device = next(
+            device
+            for device in self._discovered_devices
+            if device["host"] == selected_host
+        )
+
+        # Check if we already have this device configured
+        await self.async_set_unique_id(selected_host)
+        self._abort_if_unique_id_configured()
+
+        # Validate the connection
+        try:
+            device = Dali2IotDevice(
+                selected_host,
+                device["name"],
+                async_get_clientsession(self.hass),
+            )
+            await device.async_get_info()
+        except Dali2IotConnectionError as ex:
+            _LOGGER.error("Error connecting to device: %s", ex)
+            return self.async_show_form(
+                step_id="select",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("device"): vol.In(
+                            {
+                                device["host"]: f"{device['name']} ({device['host']})"
+                                for device in self._discovered_devices
+                            }
+                        )
+                    }
+                ),
+                errors={"base": "cannot_connect"},
+            )
+
+        return self.async_create_entry(
+            title=device["name"],
+            data={
+                CONF_HOST: selected_host,
+                CONF_NAME: device["name"],
             },
         ) 
