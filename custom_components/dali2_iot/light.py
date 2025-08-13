@@ -1,7 +1,9 @@
 """Light platform for DALI2 IoT integration."""
 from __future__ import annotations
 
+import asyncio
 import logging
+import time
 from typing import Any
 
 from homeassistant.components.light import (
@@ -58,6 +60,7 @@ class Dali2IotLight(LightEntity):
         
         # Cache for optimistic updates (immediate UI feedback)
         self._optimistic_state = {}
+        self._optimistic_timestamp = 0.0
         
         # Set supported color modes based on device features
         self._attr_supported_color_modes = set()
@@ -89,11 +92,15 @@ class Dali2IotLight(LightEntity):
         """Return device info."""
         return self._coordinator.device.device_info
 
+    def _is_optimistic_state_valid(self) -> bool:
+        """Check if optimistic state is still valid (within time window)."""
+        return time.time() - self._optimistic_timestamp < 3.0  # 3 seconds window
+
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
         # Check optimistic state first for immediate UI feedback
-        if "switchable" in self._optimistic_state:
+        if "switchable" in self._optimistic_state and self._is_optimistic_state_valid():
             return self._optimistic_state["switchable"]
         
         # Get current device state from coordinator
@@ -106,7 +113,7 @@ class Dali2IotLight(LightEntity):
     def brightness(self) -> int | None:
         """Return the brightness of the light."""
         # Check optimistic state first for immediate UI feedback
-        if "brightness" in self._optimistic_state:
+        if "brightness" in self._optimistic_state and self._is_optimistic_state_valid():
             return self._optimistic_state["brightness"]
         
         # Get current device state from coordinator
@@ -149,6 +156,7 @@ class Dali2IotLight(LightEntity):
         """Turn the light on."""
         # Optimistically update local state for immediate UI feedback
         self._optimistic_state["switchable"] = True
+        self._optimistic_timestamp = time.time()
         
         if ATTR_BRIGHTNESS in kwargs:
             self._optimistic_state["brightness"] = kwargs[ATTR_BRIGHTNESS]
@@ -191,6 +199,7 @@ class Dali2IotLight(LightEntity):
         """Turn the light off."""
         # Optimistically update local state for immediate UI feedback
         self._optimistic_state["switchable"] = False
+        self._optimistic_timestamp = time.time()
         
         # Force immediate UI update with optimistic state
         self.async_write_ha_state()
@@ -218,9 +227,10 @@ class Dali2IotLight(LightEntity):
         )
     
     def _on_coordinator_update(self) -> None:
-        """Handle coordinator update - clear optimistic state and update UI."""
-        # Clear optimistic state when we get real data from coordinator
-        self._optimistic_state.clear()
+        """Handle coordinator update - update UI but keep optimistic state if recent."""
+        # Only clear optimistic state if it's older than the grace period
+        if not self._is_optimistic_state_valid():
+            self._optimistic_state.clear()
         self.async_write_ha_state()
 
     async def async_update(self) -> None:
