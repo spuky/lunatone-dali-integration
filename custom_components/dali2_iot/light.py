@@ -56,6 +56,9 @@ class Dali2IotLight(LightEntity):
         self._name = device["name"]
         self._features = device.get("features", {})
         
+        # Cache for optimistic updates (immediate UI feedback)
+        self._optimistic_state = {}
+        
         # Set supported color modes based on device features
         self._attr_supported_color_modes = set()
         if "dimmable" in self._features:
@@ -89,6 +92,10 @@ class Dali2IotLight(LightEntity):
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
+        # Check optimistic state first for immediate UI feedback
+        if "switchable" in self._optimistic_state:
+            return self._optimistic_state["switchable"]
+        
         # Get current device state from coordinator
         current_device = self._coordinator.get_device(self._device_id)
         if current_device and "features" in current_device:
@@ -98,6 +105,10 @@ class Dali2IotLight(LightEntity):
     @property
     def brightness(self) -> int | None:
         """Return the brightness of the light."""
+        # Check optimistic state first for immediate UI feedback
+        if "brightness" in self._optimistic_state:
+            return self._optimistic_state["brightness"]
+        
         # Get current device state from coordinator
         current_device = self._coordinator.get_device(self._device_id)
         if current_device and "features" in current_device:
@@ -136,6 +147,16 @@ class Dali2IotLight(LightEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
+        # Optimistically update local state for immediate UI feedback
+        self._optimistic_state["switchable"] = True
+        
+        if ATTR_BRIGHTNESS in kwargs:
+            self._optimistic_state["brightness"] = kwargs[ATTR_BRIGHTNESS]
+        
+        # Force immediate UI update with optimistic state
+        self.async_write_ha_state()
+        
+        # Prepare command data
         data = {"switchable": True}
         
         if ATTR_BRIGHTNESS in kwargs:
@@ -152,33 +173,55 @@ class Dali2IotLight(LightEntity):
         if ATTR_COLOR_TEMP in kwargs:
             data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP]
         
-        # Send command to device
-        await self._coordinator.device.async_control_device(self._device_id, data)
-        
-        # Immediately refresh coordinator data and update entity state for responsiveness
-        await self._coordinator.async_request_refresh()
-        
-        # Force immediate state update in Home Assistant UI
-        self.async_write_ha_state()
+        try:
+            # Send command to device
+            await self._coordinator.device.async_control_device(self._device_id, data)
+            
+            # Clear optimistic state and refresh with real data
+            self._optimistic_state.clear()
+            await self._coordinator.async_request_refresh()
+            
+        except Exception as err:
+            # If command fails, revert optimistic state
+            _LOGGER.error("Failed to turn on device %s: %s", self._device_id, err)
+            self._optimistic_state.clear()
+            self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
+        # Optimistically update local state for immediate UI feedback
+        self._optimistic_state["switchable"] = False
+        
+        # Force immediate UI update with optimistic state
+        self.async_write_ha_state()
+        
         data = {"switchable": False}
         
-        # Send command to device
-        await self._coordinator.device.async_control_device(self._device_id, data)
-        
-        # Immediately refresh coordinator data and update entity state for responsiveness
-        await self._coordinator.async_request_refresh()
-        
-        # Force immediate state update in Home Assistant UI
-        self.async_write_ha_state()
+        try:
+            # Send command to device
+            await self._coordinator.device.async_control_device(self._device_id, data)
+            
+            # Clear optimistic state and refresh with real data
+            self._optimistic_state.clear()
+            await self._coordinator.async_request_refresh()
+            
+        except Exception as err:
+            # If command fails, revert optimistic state
+            _LOGGER.error("Failed to turn off device %s: %s", self._device_id, err)
+            self._optimistic_state.clear()
+            self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
         self.async_on_remove(
-            self._coordinator.async_add_listener(self.async_write_ha_state)
+            self._coordinator.async_add_listener(self._on_coordinator_update)
         )
+    
+    def _on_coordinator_update(self) -> None:
+        """Handle coordinator update - clear optimistic state and update UI."""
+        # Clear optimistic state when we get real data from coordinator
+        self._optimistic_state.clear()
+        self.async_write_ha_state()
 
     async def async_update(self) -> None:
         """Update the light state."""
