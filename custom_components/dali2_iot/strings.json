@@ -1,0 +1,49 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "DALI2 IoT Setup",
+        "description": "Configure your DALI2 IoT device",
+        "data": {
+          "host": "Host IP Address",
+          "name": "Device Name"
+        }
+      },
+      "select": {
+        "title": "Select DALI2 IoT Device",
+        "description": "Choose from discovered devices",
+        "data": {
+          "device": "Device"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to device"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DALI2 IoT Options",
+        "description": "Configure options for DALI2 IoT device at {device_host}",
+        "data": {
+          "scan_devices": "Scan for new DALI devices"
+        }
+      },
+      "scan": {
+        "title": "DALI Device Scan",
+        "description": "Start a scan for new DALI devices on {device_host}",
+        "data": {
+          "new_installation": "New installation (deletes existing devices - use with caution!)"
+        }
+      }
+    },
+    "abort": {
+      "device_not_found": "DALI2 IoT device not found",
+      "scan_failed": "Failed to start device scan"
+    }
+  }
+}

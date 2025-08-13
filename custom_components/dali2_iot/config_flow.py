@@ -21,6 +21,11 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
     VERSION = 1
 
+    @staticmethod
+    def async_get_options_flow(config_entry):
+        """Get the options flow for this handler."""
+        return Dali2IotOptionsFlow(config_entry)
+
     def __init__(self) -> None:
         """Initialize the config flow."""
         self._discovery = None
@@ -155,5 +160,71 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data={
                 CONF_HOST: selected_host,
                 CONF_NAME: selected_device["name"],
+            },
+        )
+
+class Dali2IotOptionsFlow(config_entries.OptionsFlow):
+    """Handle DALI2 IoT options."""
+
+    def __init__(self, config_entry: config_entries.ConfigEntry) -> None:
+        """Initialize options flow."""
+        self.config_entry = config_entry
+
+    async def async_step_init(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Manage the options."""
+        if user_input is not None:
+            if user_input.get("scan_devices"):
+                return await self.async_step_scan()
+            return self.async_create_entry(title="", data={})
+
+        return self.async_show_form(
+            step_id="init",
+            data_schema=vol.Schema({
+                vol.Optional("scan_devices", default=False): bool,
+            }),
+            description_placeholders={
+                "device_host": self.config_entry.data[CONF_HOST],
+            },
+        )
+
+    async def async_step_scan(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the scan step."""
+        if user_input is not None:
+            # Get the coordinator
+            coordinator = self.hass.data[DOMAIN].get(self.config_entry.entry_id)
+            if not coordinator:
+                return self.async_abort(reason="device_not_found")
+
+            try:
+                # Start the scan
+                new_installation = user_input.get("new_installation", False)
+                _LOGGER.info("Starting DALI scan from options (new_installation=%s)", new_installation)
+                scan_result = await coordinator.device.async_start_scan(new_installation)
+                _LOGGER.info("DALI scan started: %s", scan_result)
+                
+                # Refresh coordinator data
+                await coordinator.async_request_refresh()
+                
+                return self.async_create_entry(
+                    title="", 
+                    data={},
+                    description="DALI-Scan wurde erfolgreich gestartet! Neue Geräte erscheinen automatisch in Home Assistant."
+                )
+                
+            except Exception as err:
+                _LOGGER.error("Failed to start DALI scan from options: %s", err)
+                return self.async_abort(reason="scan_failed")
+
+        return self.async_show_form(
+            step_id="scan",
+            data_schema=vol.Schema({
+                vol.Optional("new_installation", default=False): bool,
+            }),
+            description_placeholders={
+                "device_host": self.config_entry.data[CONF_HOST],
             },
         ) 
