@@ -12,7 +12,7 @@ from homeassistant.core import HomeAssistant
 _LOGGER = logging.getLogger(__name__)
 
 DISCOVERY_PORT: Final = 5555
-DISCOVERY_MESSAGE: Final = '{"type": "discovery"}'
+DISCOVERY_MESSAGE: Final = 'discovery'
 DISCOVERY_TIMEOUT: Final = 5.0
 
 class Dali2IotDiscovery:
