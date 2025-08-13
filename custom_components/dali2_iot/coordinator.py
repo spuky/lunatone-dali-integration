@@ -2,6 +2,7 @@
 from __future__ import annotations
 
 import logging
+from datetime import timedelta
 from typing import Any
 
 from homeassistant.core import HomeAssistant
@@ -25,7 +26,7 @@ class Dali2IotCoordinator(DataUpdateCoordinator):
             hass,
             _LOGGER,
             name="DALI2 IoT",
-            update_interval=update_interval,
+            update_interval=timedelta(seconds=update_interval),
         )
         self.device = device
         self._devices: list[dict[str, Any]] = []
