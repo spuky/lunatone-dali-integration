@@ -13,7 +13,7 @@ from homeassistant.helpers.update_coordinator import DataUpdateCoordinator
 _LOGGER = logging.getLogger(__name__)
 
 API_TIMEOUT: Final = 10.0
-BASE_URL: Final = "http://{host}/api/v1"
+BASE_URL: Final = "http://{host}"
 
 class Dali2IotConnectionError(Exception):
     """Error to indicate we cannot connect to the device."""
