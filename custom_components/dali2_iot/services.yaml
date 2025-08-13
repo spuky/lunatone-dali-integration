@@ -1,0 +1,17 @@
+scan_devices:
+  name: Scan for DALI devices
+  description: Start a scan for new DALI devices on the bus
+  fields:
+    device_id:
+      name: Device ID
+      description: Config entry ID of the DALI2 IoT device (optional, uses first device if not specified)
+      required: false
+      selector:
+        text:
+    new_installation:
+      name: New Installation
+      description: Set to true to delete all existing devices before scanning (use with caution!)
+      required: false
+      default: false
+      selector:
+        boolean:

@@ -91,4 +91,33 @@ class Dali2IotDevice:
                     raise Dali2IotConnectionError(f"Invalid response from device at {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error controlling device at %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_start_scan(self, new_installation: bool = False) -> dict[str, Any]:
+        """Start a DALI device scan."""
+        try:
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.post(
+                    f"{self._base_url}/dali/scan",
+                    json={"newInstallation": new_installation},
+                ) as response:
+                    if response.status == 200:
+                        return await response.json()
+                    _LOGGER.error("Failed to start scan on %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to start scan on {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error starting scan on %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_get_scan_status(self) -> dict[str, Any]:
+        """Get the current scan status."""
+        try:
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.get(f"{self._base_url}/dali/scan") as response:
+                    if response.status == 200:
+                        return await response.json()
+                    _LOGGER.error("Failed to get scan status from %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to get scan status from {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error getting scan status from %s: %s", self._host, err)
             raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err 
