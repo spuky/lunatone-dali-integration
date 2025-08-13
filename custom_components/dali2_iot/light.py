@@ -35,7 +35,8 @@ async def async_setup_entry(
     # Create light entities for each device
     entities = []
     for device in devices:
-        if device.get("type") == "device":  # Only create lights for actual devices
+        # Create lights for all DALI devices (they have 'id' and 'features')
+        if "id" in device and "features" in device:
             entities.append(Dali2IotLight(coordinator, device))
     
     async_add_entities(entities)
@@ -88,32 +89,49 @@ class Dali2IotLight(LightEntity):
     @property
     def is_on(self) -> bool:
         """Return true if light is on."""
-        return self._device.get("switchable", False)
+        # Get current device state from coordinator
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device and "features" in current_device:
+            return current_device["features"].get("switchable", {}).get("status", False)
+        return False
 
     @property
     def brightness(self) -> int | None:
         """Return the brightness of the light."""
-        if "dimmable" in self._features:
-            return int(self._device.get("dimmable", 0) * 2.55)
+        # Get current device state from coordinator
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device and "features" in current_device:
+            features = current_device["features"]
+            if "dimmable" in features:
+                dim_value = features["dimmable"].get("status", 0)
+                return int(dim_value * 2.55)  # Convert 0-100 to 0-255
         return None
 
     @property
     def rgb_color(self) -> tuple[int, int, int] | None:
         """Return the RGB color of the light."""
-        if "colorRGB" in self._features:
-            color = self._device.get("colorRGB", {})
-            return (
-                int(color.get("r", 0) * 255),
-                int(color.get("g", 0) * 255),
-                int(color.get("b", 0) * 255),
-            )
+        # Get current device state from coordinator
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device and "features" in current_device:
+            features = current_device["features"]
+            if "colorRGB" in features:
+                color = features["colorRGB"].get("status", {})
+                return (
+                    int(color.get("r", 0) * 255),
+                    int(color.get("g", 0) * 255),
+                    int(color.get("b", 0) * 255),
+                )
         return None
 
     @property
     def color_temp(self) -> int | None:
         """Return the color temperature of the light."""
-        if "colorKelvin" in self._features:
-            return int(self._device.get("colorKelvin", 4000))
+        # Get current device state from coordinator
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device and "features" in current_device:
+            features = current_device["features"]
+            if "colorKelvin" in features:
+                return int(features["colorKelvin"].get("status", 4000))
         return None
 
     async def async_turn_on(self, **kwargs: Any) -> None:
