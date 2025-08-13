@@ -151,15 +151,28 @@ class Dali2IotLight(LightEntity):
             
         if ATTR_COLOR_TEMP in kwargs:
             data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP]
-            
+        
+        # Send command to device
         await self._coordinator.device.async_control_device(self._device_id, data)
+        
+        # Immediately refresh coordinator data and update entity state for responsiveness
         await self._coordinator.async_request_refresh()
+        
+        # Force immediate state update in Home Assistant UI
+        self.async_write_ha_state()
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
         data = {"switchable": False}
+        
+        # Send command to device
         await self._coordinator.device.async_control_device(self._device_id, data)
+        
+        # Immediately refresh coordinator data and update entity state for responsiveness
         await self._coordinator.async_request_refresh()
+        
+        # Force immediate state update in Home Assistant UI
+        self.async_write_ha_state()
 
     async def async_added_to_hass(self) -> None:
         """When entity is added to hass."""
