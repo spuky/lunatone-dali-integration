@@ -115,7 +115,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Get selected device
         selected_host = user_input["device"]
-        device = next(
+        selected_device = next(
             device
             for device in self._discovered_devices
             if device["host"] == selected_host
@@ -127,12 +127,12 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Validate the connection
         try:
-            device = Dali2IotDevice(
+            test_device = Dali2IotDevice(
                 selected_host,
-                device["name"],
+                selected_device["name"],
                 async_get_clientsession(self.hass),
             )
-            await device.async_get_info()
+            await test_device.async_get_info()
         except Dali2IotConnectionError as ex:
             _LOGGER.error("Error connecting to device at %s: %s", selected_host, ex)
             return self.async_show_form(
@@ -151,9 +151,9 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             )
 
         return self.async_create_entry(
-            title=device["name"],
+            title=selected_device["name"],
             data={
                 CONF_HOST: selected_host,
-                CONF_NAME: device["name"],
+                CONF_NAME: selected_device["name"],
             },
         ) 
