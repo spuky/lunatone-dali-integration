@@ -159,6 +159,10 @@ class Dali2IotLight(LightEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the light on."""
+        # Check if light is currently on to decide whether to send switchable command
+        current_is_on = self.is_on
+        brightness_only = ATTR_BRIGHTNESS in kwargs and len(kwargs) == 1
+        
         # Optimistically update local state for immediate UI feedback
         self._optimistic_state["switchable"] = True
         self._optimistic_timestamp = time.time()
@@ -173,8 +177,14 @@ class Dali2IotLight(LightEntity):
         # Force immediate UI update with optimistic state
         self.async_write_ha_state()
         
-        # Prepare command data
-        data = {"switchable": True}
+        # Prepare command data - only send switchable if light is off or explicit turn on
+        data = {}
+        
+        # Only send switchable=True if light is currently off or it's not just a brightness change
+        if not current_is_on or not brightness_only:
+            data["switchable"] = True
+            _LOGGER.debug("Device %s sending switchable=True (was_on=%s, brightness_only=%s)", 
+                         self._device_id, current_is_on, brightness_only)
         
         if ATTR_BRIGHTNESS in kwargs:
             data["dimmable"] = kwargs[ATTR_BRIGHTNESS] / 2.55
@@ -189,6 +199,13 @@ class Dali2IotLight(LightEntity):
             
         if ATTR_COLOR_TEMP in kwargs:
             data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP]
+        
+        # Ensure we have at least one command to send
+        if not data:
+            _LOGGER.warning("Device %s: No command data to send", self._device_id)
+            return
+        
+        _LOGGER.debug("Device %s sending command: %s", self._device_id, data)
         
         try:
             # Send command to device
