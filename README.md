@@ -1,58 +1,140 @@
 # Home Assistant DALI2 IoT Integration
 
-⚠️ **WARNING: WORK IN PROGRESS** ⚠️
+⚠️ **WORK IN PROGRESS** ⚠️
 
-This integration is currently under development and is not yet functional. The basic structure is in place, but the actual device communication and control features are not yet implemented.
+A Home Assistant custom integration for controlling DALI2 IoT devices via network communication. This integration is under active development and testing.
 
 ## Current Status
-- Basic integration structure ✅
-- HACS compatibility ✅
-- Device communication ❌ (Not implemented)
-- Light control ❌ (Not implemented)
-- Configuration flow ✅ (Basic structure)
-- Auto-discovery ✅ (Basic structure)
-
-This is a custom integration for Home Assistant to control DALI2 IoT devices.
-
-## Installation
-
-1. Using HACS (Home Assistant Community Store):
-   - Add this repository as a custom repository in HACS
-   - Install the integration through HACS
-   - Restart Home Assistant
-
-2. Manual installation:
-   - Copy the `custom_components/dali2_iot` directory to your Home Assistant's `custom_components` directory
-   - Restart Home Assistant
-
-## Configuration
-
-The integration can be configured in two ways:
-
-### Auto-discovery (Recommended)
-1. Go to Home Assistant's Configuration > Integrations
-2. Click the "+" button to add a new integration
-3. Search for "DALI2 IoT"
-4. If a DALI2 IoT device is found on your network, it will appear in the list
-5. Click on the device to add it
-
-### Manual Configuration
-1. Go to Home Assistant's Configuration > Integrations
-2. Click the "+" button to add a new integration
-3. Search for "DALI2 IoT"
-4. Select "Configure manually"
-5. Enter the IP address of your DALI2 IoT device
+- Device communication and control ✅ (Basic functionality working)
+- Automatic UDP discovery ✅ (Working)
+- Manual configuration ✅ (Working)
+- Light entities with responsive UI ✅ (Working with optimizations)
+- Device scanning ✅ (Working)
+- Brightness control ✅ (Optimized to reduce flickering)
+- Service and UI-based device discovery ✅ (Working)
+- RGB/Color temperature support ⚠️ (Implemented but needs testing)
+- Error handling ⚠️ (Basic implementation, needs improvement)
+- Production stability ❌ (Still in development/testing phase)
 
 ## Features
 
-- Control DALI2 IoT lights
-- Brightness control
-- On/Off control
+### Device Discovery & Configuration
+- **Automatic UDP Discovery**: Automatically finds DALI2 IoT controllers on your network (UDP port 5555)
+- **Manual Configuration**: Enter device IP address manually if auto-discovery doesn't work
+- **Multi-device Support**: Support for multiple DALI2 IoT controllers
+
+### Light Control
+- **Responsive UI**: Immediate visual feedback with optimistic updates (5-second grace period)
+- **Brightness Control**: Smooth dimming without unwanted light flashing
+- **On/Off Control**: Reliable switching with proper state management
+- **Feature Detection**: Automatically detects and enables only supported features:
+  - Dimmable lights (brightness control)
+  - RGB color control (if supported by device)
+  - Color temperature control (if supported by device)
+
+### Device Management
+- **DALI Bus Scanning**: Scan for new devices directly from Home Assistant
+- **UI Options**: Access scan functionality through integration options
+- **Service Integration**: `dali2_iot.scan_devices` service for automation
+- **New Installation Mode**: Option to clear existing devices before scanning
+
+### Technical Features
+- **Optimistic Updates**: UI responds immediately to commands while maintaining data consistency
+- **Intelligent Control**: Only sends necessary commands (e.g., brightness-only changes don't trigger switchable commands)
+- **Error Handling**: Comprehensive error handling with detailed logging
+- **State Coordination**: 30-second data refresh with smart state merging
+
+## Installation
+
+### HACS (Recommended)
+1. Add this repository as a custom repository in HACS
+2. Install "DALI2 IoT Integration" through HACS
+3. Restart Home Assistant
+
+### Manual Installation
+1. Copy the `custom_components/dali2_iot` directory to your Home Assistant's `custom_components` directory
+2. Restart Home Assistant
+
+## Configuration
+
+### Automatic Discovery (Recommended)
+1. Navigate to **Settings** > **Devices & Services**
+2. Click **+ ADD INTEGRATION**
+3. Search for "DALI2 IoT"
+4. If devices are found automatically, select your device from the list
+5. Click **Submit** to complete setup
+
+### Manual Configuration
+1. Navigate to **Settings** > **Devices & Services**
+2. Click **+ ADD INTEGRATION**
+3. Search for "DALI2 IoT"
+4. Enter your DALI2 IoT controller's IP address
+5. Provide a name for the device (optional)
+6. Click **Submit**
+
+## Device Management
+
+### Scanning for New DALI Devices
+
+#### Via Integration Options (UI Method)
+1. Go to **Settings** > **Devices & Services**
+2. Find your DALI2 IoT integration
+3. Click **Configure**
+4. Enable **Scan for new DALI devices**
+5. Optionally enable **New installation** to clear existing devices
+6. Click **Submit** to start scan
+
+#### Via Service Call
+Use the `dali2_iot.scan_devices` service:
+```yaml
+service: dali2_iot.scan_devices
+data:
+  new_installation: false  # Set to true to clear existing devices
+```
+
+## API Endpoints
+
+The integration communicates with DALI2 IoT controllers using these HTTP endpoints:
+- `GET /info` - Device information
+- `GET /devices` - List of DALI devices
+- `POST /devices/{id}` - Control device
+- `POST /scan` - Start device scan
+- `GET /scan/status` - Get scan status
+
+## Network Requirements
+
+- DALI2 IoT controller must be accessible via HTTP on your network
+- UDP port 5555 must be open for auto-discovery
+- Home Assistant and DALI2 IoT controller should be on the same network segment for optimal discovery
+
+## Troubleshooting
+
+### Discovery Issues
+- Ensure DALI2 IoT controller and Home Assistant are on the same network
+- Check that UDP port 5555 is not blocked by firewall
+- Try manual configuration with the device's IP address
+
+### Connection Problems
+- Verify the IP address is correct and device is powered on
+- Check network connectivity between Home Assistant and device
+- Review Home Assistant logs for detailed error messages
+
+### Missing Light Entities
+- Ensure DALI devices are properly connected to the bus
+- Run a device scan to detect new devices
+- Check that devices have required features (dimmable, switchable)
 
 ## Development
 
-This integration is under active development. Feel free to contribute by submitting issues or pull requests.
+This integration is under active development and testing. While basic functionality works, it should be considered experimental. Use at your own risk and please report any issues you encounter. 
+
+### Key Components
+- `device.py` - Core device communication
+- `coordinator.py` - Data coordination and caching  
+- `light.py` - Light entity implementation with optimistic updates
+- `config_flow.py` - Configuration and options flow
+- `discovery.py` - UDP auto-discovery implementation
 
 ## License
 
-This project is licensed under the MIT License - see the LICENSE file for details. 
+This project is licensed under the MIT License - see the LICENSE file for details.
