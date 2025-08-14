@@ -22,9 +22,13 @@ class Dali2IotCoordinator(DataUpdateCoordinator):
         update_interval: int = 30,
     ) -> None:
         """Initialize the coordinator."""
+        # Create a custom logger with higher log level to reduce debug spam
+        coordinator_logger = logging.getLogger(f"{__name__}.quiet")
+        coordinator_logger.setLevel(logging.INFO)
+        
         super().__init__(
             hass,
-            _LOGGER,
+            coordinator_logger,
             name="DALI2 IoT",
             update_interval=timedelta(seconds=update_interval),
         )
