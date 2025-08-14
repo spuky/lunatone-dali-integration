@@ -12,6 +12,8 @@ from homeassistant.components.light import (
     ATTR_RGB_COLOR,
     ColorMode,
     LightEntity,
+    DEFAULT_MIN_KELVIN,
+    DEFAULT_MAX_KELVIN,
 )
 from homeassistant.config_entries import ConfigEntry
 from homeassistant.core import HomeAssistant
@@ -63,18 +65,24 @@ class Dali2IotLight(LightEntity):
         self._optimistic_timestamp = 0.0
         
         # Set supported color modes based on device features
+        # Home Assistant requires specific combinations - can't mix certain modes
         self._attr_supported_color_modes = set()
-        if "dimmable" in self._features:
-            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+        
+        # Priority order: RGB > COLOR_TEMP > BRIGHTNESS > ONOFF
         if "colorRGB" in self._features:
             self._attr_supported_color_modes.add(ColorMode.RGB)
-        if "colorKelvin" in self._features:
+            self._attr_color_mode = ColorMode.RGB
+        elif "colorKelvin" in self._features:
             self._attr_supported_color_modes.add(ColorMode.COLOR_TEMP)
-        
-        # Set default color mode
-        if self._attr_supported_color_modes:
-            self._attr_color_mode = next(iter(self._attr_supported_color_modes))
+            self._attr_color_mode = ColorMode.COLOR_TEMP
+            # Set kelvin temperature range
+            self._attr_min_color_temp_kelvin = DEFAULT_MIN_KELVIN  # 2000K
+            self._attr_max_color_temp_kelvin = DEFAULT_MAX_KELVIN  # 6500K
+        elif "dimmable" in self._features:
+            self._attr_supported_color_modes.add(ColorMode.BRIGHTNESS)
+            self._attr_color_mode = ColorMode.BRIGHTNESS
         else:
+            self._attr_supported_color_modes.add(ColorMode.ONOFF)
             self._attr_color_mode = ColorMode.ONOFF
 
     @property
