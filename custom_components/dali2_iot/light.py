@@ -104,9 +104,7 @@ class Dali2IotLight(LightEntity):
         """Check if optimistic state is still valid (within time window)."""
         elapsed = time.time() - self._optimistic_timestamp
         is_valid = elapsed < 5.0  # 5 seconds window
-        if self._optimistic_state:
-            _LOGGER.debug("Device %s optimistic state: %s, elapsed: %.1fs, valid: %s", 
-                         self._device_id, self._optimistic_state, elapsed, is_valid)
+        # Debug logging removed to reduce log spam
         return is_valid
 
     @property
@@ -177,10 +175,8 @@ class Dali2IotLight(LightEntity):
         
         if ATTR_BRIGHTNESS in kwargs:
             self._optimistic_state["brightness"] = kwargs[ATTR_BRIGHTNESS]
-            _LOGGER.debug("Device %s optimistic brightness set to %s", 
-                         self._device_id, kwargs[ATTR_BRIGHTNESS])
         
-        _LOGGER.debug("Device %s optimistic state set: %s", self._device_id, self._optimistic_state)
+        # Optimistic state set (debug logging removed)
         
         # Force immediate UI update with optimistic state
         self.async_write_ha_state()
@@ -191,8 +187,6 @@ class Dali2IotLight(LightEntity):
         # Only send switchable=True if light is currently off or it's not just a brightness change
         if not current_is_on or not brightness_only:
             data["switchable"] = True
-            _LOGGER.debug("Device %s sending switchable=True (was_on=%s, brightness_only=%s)", 
-                         self._device_id, current_is_on, brightness_only)
         
         if ATTR_BRIGHTNESS in kwargs:
             data["dimmable"] = kwargs[ATTR_BRIGHTNESS] / 2.55
@@ -213,7 +207,7 @@ class Dali2IotLight(LightEntity):
             _LOGGER.warning("Device %s: No command data to send", self._device_id)
             return
         
-        _LOGGER.debug("Device %s sending command: %s", self._device_id, data)
+        # Sending command to device (debug logging removed)
         
         try:
             # Send command to device
@@ -234,7 +228,7 @@ class Dali2IotLight(LightEntity):
         self._optimistic_state["switchable"] = False
         self._optimistic_timestamp = time.time()
         
-        _LOGGER.debug("Device %s optimistic state set: %s", self._device_id, self._optimistic_state)
+        # Optimistic state set (debug logging removed)
         
         # Force immediate UI update with optimistic state
         self.async_write_ha_state()
