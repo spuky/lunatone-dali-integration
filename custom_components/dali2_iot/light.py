@@ -8,7 +8,7 @@ from typing import Any
 
 from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
-    ATTR_COLOR_TEMP,
+    ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
     ColorMode,
     LightEntity,
@@ -197,8 +197,8 @@ class Dali2IotLight(LightEntity):
                 "b": b / 255,
             }
             
-        if ATTR_COLOR_TEMP in kwargs:
-            data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP]
+        if ATTR_COLOR_TEMP_KELVIN in kwargs:
+            data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP_KELVIN]
         
         # Ensure we have at least one command to send
         if not data:
