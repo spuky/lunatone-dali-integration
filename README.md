@@ -12,6 +12,7 @@ A Home Assistant custom integration for controlling DALI2 IoT devices via networ
 - Device scanning ✅ (Working)
 - Brightness control ✅ (Optimized to reduce flickering)
 - Service and UI-based device discovery ✅ (Working)
+- Group membership visibility ✅ (Shows which DALI groups each device belongs to)
 - RGB/Color temperature support ⚠️ (Implemented but needs testing)
 - Error handling ⚠️ (Basic implementation, needs improvement)
 - Production stability ❌ (Still in development/testing phase)
@@ -41,6 +42,7 @@ A Home Assistant custom integration for controlling DALI2 IoT devices via networ
 ### Technical Features
 - **Optimistic Updates**: UI responds immediately to commands while maintaining data consistency
 - **Intelligent Control**: Only sends necessary commands (e.g., brightness-only changes don't trigger switchable commands)
+- **Group Information**: Device attributes show DALI group membership, addresses, and line information
 - **Error Handling**: Comprehensive error handling with detailed logging
 - **State Coordination**: 30-second data refresh with smart state merging
 
@@ -91,6 +93,20 @@ service: dali2_iot.scan_devices
 data:
   new_installation: false  # Set to true to clear existing devices
 ```
+
+### Viewing Device Group Information
+
+Each DALI device displays additional information in its attributes:
+- **dali_groups**: List of DALI group IDs the device belongs to
+- **dali_group_count**: Number of groups the device is in
+- **dali_address**: DALI bus address of the device
+- **dali_line**: DALI line number
+- **dali_device_type**: Type of DALI device
+
+To view this information:
+1. Go to **Developer Tools** > **States**
+2. Find your DALI light entity (e.g., `light.dali_device_1`)
+3. Click on it to see the attributes
 
 ## API Endpoints
 

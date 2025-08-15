@@ -59,6 +59,7 @@ class Dali2IotLight(LightEntity):
         self._device_id = device["id"]
         self._name = device["name"]
         self._features = device.get("features", {})
+        self._groups = device.get("groups", [])
         
         # Cache for optimistic updates (immediate UI feedback)
         self._optimistic_state = {}
@@ -99,6 +100,29 @@ class Dali2IotLight(LightEntity):
     def device_info(self) -> DeviceInfo:
         """Return device info."""
         return self._coordinator.device.device_info
+
+    @property
+    def extra_state_attributes(self) -> dict[str, Any]:
+        """Return extra state attributes."""
+        attributes = {}
+        
+        # Add DALI group membership information
+        if self._groups:
+            attributes["dali_groups"] = self._groups
+            attributes["dali_group_count"] = len(self._groups)
+        
+        # Get current device data for additional info
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device:
+            # Add DALI address and line information
+            if "address" in current_device:
+                attributes["dali_address"] = current_device["address"]
+            if "line" in current_device:
+                attributes["dali_line"] = current_device["line"]
+            if "type" in current_device:
+                attributes["dali_device_type"] = current_device["type"]
+        
+        return attributes
 
     def _is_optimistic_state_valid(self) -> bool:
         """Check if optimistic state is still valid (within time window)."""
@@ -256,6 +280,11 @@ class Dali2IotLight(LightEntity):
     
     def _on_coordinator_update(self) -> None:
         """Handle coordinator update - update UI but keep optimistic state if recent."""
+        # Update group membership from current device data
+        current_device = self._coordinator.get_device(self._device_id)
+        if current_device:
+            self._groups = current_device.get("groups", [])
+        
         # Only clear optimistic state if it's older than the grace period
         if not self._is_optimistic_state_valid():
             self._optimistic_state.clear()
