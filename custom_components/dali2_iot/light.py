@@ -445,6 +445,10 @@ class Dali2IotGroupLight(LightEntity):
 
     async def async_turn_on(self, **kwargs: Any) -> None:
         """Turn the group on."""
+        # Check if group is currently on to decide whether to send switchable command
+        current_is_on = self.is_on
+        brightness_only = ATTR_BRIGHTNESS in kwargs and len(kwargs) == 1
+        
         # Optimistic update
         self._optimistic_state["switchable"] = True
         self._optimistic_timestamp = time.time()
@@ -454,8 +458,12 @@ class Dali2IotGroupLight(LightEntity):
         
         self.async_write_ha_state()
         
-        # Prepare command data
-        data = {"switchable": True}
+        # Prepare command data - only send switchable if group is off or explicit turn on
+        data = {}
+        
+        # Only send switchable=True if group is currently off or it's not just a brightness change
+        if not current_is_on or not brightness_only:
+            data["switchable"] = True
         
         if ATTR_BRIGHTNESS in kwargs:
             data["dimmable"] = kwargs[ATTR_BRIGHTNESS] / 2.55
@@ -470,6 +478,11 @@ class Dali2IotGroupLight(LightEntity):
             
         if ATTR_COLOR_TEMP_KELVIN in kwargs:
             data["colorKelvin"] = kwargs[ATTR_COLOR_TEMP_KELVIN]
+        
+        # Ensure we have at least one command to send
+        if not data:
+            _LOGGER.warning("Group %s: No command data to send", self._group_id)
+            return
         
         try:
             # Send command to group - much more efficient than individual devices!
