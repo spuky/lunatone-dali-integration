@@ -193,6 +193,65 @@ The integration communicates with DALI2 IoT controllers using these HTTP endpoin
 - UDP port 5555 must be open for auto-discovery
 - Home Assistant and DALI2 IoT controller should be on the same network segment for optimal discovery
 
+## DALI-2 IoT Device Features
+
+The DALI-2 IoT controller has many advanced features. This integration currently implements core lighting control and group management, with additional features planned for future releases.
+
+### ✅ **Implemented Features**
+- **Device Discovery & Control**: Full DALI device detection and individual control
+- **DALI Groups**: Complete group management with entities and services
+- **Device Scanning**: Automated DALI bus scanning with new installation mode
+- **Basic Light Control**: On/off, dimming, RGB color, color temperature
+- **Group Membership Management**: Add/remove devices from groups via services
+- **Real-time Status**: Device and group state monitoring with optimistic updates
+
+### 🚧 **Not implemented Features **
+(developer has no need for them feel to ask for Features you need and have Hardware to test them)
+
+#### **Virtual Zones**
+The DALI-2 IoT device supports virtual zones (different from DALI groups):
+- Custom zone creation with mixed device types
+- Zone-based control and automation
+- API endpoints: `/zones`, `/zone/{id}`, `/zone/{id}/control`
+
+#### **Advanced Automation System**
+The device includes a powerful built-in automation engine:
+- **Trigger-Actions**: Event-based automation rules
+- **Circadian Lighting**: Automatic color temperature adjustment based on time
+- **Scheduler**: Time-based lighting schedules and scenes
+- **Sequencer**: Complex lighting sequences and effects
+- API endpoints: `/automations/*`, various automation management endpoints
+
+#### **Sensor Integration**
+Built-in sensor support for environmental control:
+- Motion sensors, light sensors, temperature sensors
+- Sensor-triggered automation
+- API endpoints: `/sensors`, `/sensors/{id}`
+
+#### **Scene Management**
+Advanced scene control beyond basic on/off:
+- DALI scene programming and recall
+- Scene-based automation integration
+- Custom scene creation and management
+
+#### **Enhanced Device Features**
+Additional DALI device capabilities:
+- Fade time control
+- Scene setting and recall
+- Advanced color control features
+- Device-specific configuration options
+
+#### **System Management**
+Advanced controller management:
+- Email notifications and alerts
+- System monitoring and diagnostics
+- Advanced network configuration
+- Backup and restore functionality
+
+### 📝 **Contributing**
+
+Interested in implementing any of these features? The DALI-2 IoT API documentation is available in `/Doku/openapi.json`, and contributions are welcome!
+
 ## Troubleshooting
 
 ### Discovery Issues
