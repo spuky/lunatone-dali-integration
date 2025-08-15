@@ -205,4 +205,100 @@ class Dali2IotDevice:
                     raise Dali2IotConnectionError(f"Failed to control group {group_id} at {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error controlling group %s at %s: %s", group_id, self._host, err)
-            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err 
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_set_fade_time(
+        self, device_id: int, fade_time: float
+    ) -> bool:
+        """Set the fade time for a device (in seconds)."""
+        try:
+            data = {"fadeTime": fade_time}
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.post(
+                    f"{self._base_url}/device/{device_id}/control",
+                    json=data,
+                ) as response:
+                    if response.status == 204:
+                        return True
+                    _LOGGER.error("Failed to set fade time for device %s at %s: %s", device_id, self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to set fade time for device {device_id} at {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error setting fade time for device %s at %s: %s", device_id, self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_set_group_fade_time(
+        self, group_id: int, fade_time: float, line: int | None = None
+    ) -> bool:
+        """Set the fade time for a group (in seconds)."""
+        try:
+            data = {"fadeTime": fade_time}
+            url = f"{self._base_url}/group/{group_id}/control"
+            params = {}
+            if line is not None:
+                params["_line"] = line
+            
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.post(
+                    url,
+                    json=data,
+                    params=params if params else None,
+                ) as response:
+                    if response.status == 204:
+                        return True
+                    _LOGGER.error("Failed to set fade time for group %s at %s: %s", group_id, self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to set fade time for group {group_id} at {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error setting fade time for group %s at %s: %s", group_id, self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_control_device_with_fade(
+        self, device_id: int, data: dict[str, Any], fade_time: float | None = None
+    ) -> bool:
+        """Control device with optional fade time."""
+        # Convert standard commands to fade variants when fade_time is specified
+        if fade_time is not None:
+            fade_data = data.copy()
+            
+            # Convert to fade variants
+            if "dimmable" in data:
+                fade_data = {"dimmableWithFade": {"dimValue": data["dimmable"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "dimmable"})
+            elif "colorRGB" in data:
+                fade_data = {"colorRGBWithFade": {"color": data["colorRGB"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "colorRGB"})
+            elif "colorKelvin" in data:
+                fade_data = {"colorKelvinWithFade": {"color": data["colorKelvin"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "colorKelvin"})
+            else:
+                # Add fadeTime to existing data
+                fade_data["fadeTime"] = fade_time
+            
+            data = fade_data
+
+        return await self.async_control_device(device_id, data)
+
+    async def async_control_group_with_fade(
+        self, group_id: int, data: dict[str, Any], fade_time: float | None = None, line: int | None = None
+    ) -> bool:
+        """Control group with optional fade time."""
+        # Convert standard commands to fade variants when fade_time is specified
+        if fade_time is not None:
+            fade_data = data.copy()
+            
+            # Convert to fade variants
+            if "dimmable" in data:
+                fade_data = {"dimmableWithFade": {"dimValue": data["dimmable"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "dimmable"})
+            elif "colorRGB" in data:
+                fade_data = {"colorRGBWithFade": {"color": data["colorRGB"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "colorRGB"})
+            elif "colorKelvin" in data:
+                fade_data = {"colorKelvinWithFade": {"color": data["colorKelvin"], "fadeTime": fade_time}}
+                fade_data.update({k: v for k, v in data.items() if k != "colorKelvin"})
+            else:
+                # Add fadeTime to existing data
+                fade_data["fadeTime"] = fade_time
+            
+            data = fade_data
+
+        return await self.async_control_group(group_id, data, line) 

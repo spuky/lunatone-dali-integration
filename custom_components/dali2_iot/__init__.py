@@ -15,9 +15,12 @@ from .const import (
     SERVICE_ADD_TO_GROUP, 
     SERVICE_REMOVE_FROM_GROUP, 
     SERVICE_UPDATE_DEVICE_GROUPS,
+    SERVICE_SET_FADE_TIME,
+    SERVICE_SET_GROUP_FADE_TIME,
     ATTR_DEVICE_ID,
     ATTR_GROUP_ID,
     ATTR_GROUPS,
+    ATTR_FADE_TIME,
 )
 from .device import Dali2IotDevice
 from .coordinator import Dali2IotCoordinator
@@ -173,6 +176,60 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         except Exception as err:
             _LOGGER.error("Failed to update device %s groups: %s", device_id, err)
 
+    async def async_set_fade_time(call) -> None:
+        """Service to set fade time for a device."""
+        device_id = call.data.get(ATTR_DEVICE_ID)
+        fade_time = call.data.get(ATTR_FADE_TIME)
+        entry_id = call.data.get("entry_id")
+        
+        # Find the coordinator
+        coordinator = None
+        if entry_id:
+            coordinator = hass.data[DOMAIN].get(entry_id)
+        else:
+            # Use the first available coordinator if no entry_id specified
+            coordinators = list(hass.data[DOMAIN].values())
+            if coordinators:
+                coordinator = coordinators[0]
+        
+        if not coordinator:
+            _LOGGER.error("No DALI2 IoT device found for fade time setting")
+            return
+        
+        try:
+            _LOGGER.info("Setting fade time for device %s to %s seconds", device_id, fade_time)
+            await coordinator.device.async_set_fade_time(device_id, fade_time)
+            
+        except Exception as err:
+            _LOGGER.error("Failed to set fade time for device %s: %s", device_id, err)
+
+    async def async_set_group_fade_time(call) -> None:
+        """Service to set fade time for a group."""
+        group_id = call.data.get(ATTR_GROUP_ID)
+        fade_time = call.data.get(ATTR_FADE_TIME)
+        entry_id = call.data.get("entry_id")
+        
+        # Find the coordinator
+        coordinator = None
+        if entry_id:
+            coordinator = hass.data[DOMAIN].get(entry_id)
+        else:
+            # Use the first available coordinator if no entry_id specified
+            coordinators = list(hass.data[DOMAIN].values())
+            if coordinators:
+                coordinator = coordinators[0]
+        
+        if not coordinator:
+            _LOGGER.error("No DALI2 IoT device found for group fade time setting")
+            return
+        
+        try:
+            _LOGGER.info("Setting fade time for group %s to %s seconds", group_id, fade_time)
+            await coordinator.device.async_set_group_fade_time(group_id, fade_time)
+            
+        except Exception as err:
+            _LOGGER.error("Failed to set fade time for group %s: %s", group_id, err)
+
     # Register the services
     hass.services.async_register(
         DOMAIN,
@@ -213,6 +270,28 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         schema=vol.Schema({
             vol.Required(ATTR_DEVICE_ID): int,
             vol.Required(ATTR_GROUPS): [int],
+            vol.Optional("entry_id"): str,
+        })
+    )
+    
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_FADE_TIME,
+        async_set_fade_time,
+        schema=vol.Schema({
+            vol.Required(ATTR_DEVICE_ID): int,
+            vol.Required(ATTR_FADE_TIME): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=60.0)),
+            vol.Optional("entry_id"): str,
+        })
+    )
+    
+    hass.services.async_register(
+        DOMAIN,
+        SERVICE_SET_GROUP_FADE_TIME,
+        async_set_group_fade_time,
+        schema=vol.Schema({
+            vol.Required(ATTR_GROUP_ID): int,
+            vol.Required(ATTR_FADE_TIME): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=60.0)),
             vol.Optional("entry_id"): str,
         })
     )

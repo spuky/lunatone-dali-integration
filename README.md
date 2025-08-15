@@ -15,6 +15,7 @@ A Home Assistant custom integration for controlling DALI2 IoT devices via networ
 - Group membership visibility ✅ (Shows which DALI groups each device belongs to)
 - Group management services ✅ (Add/remove devices from DALI groups)
 - DALI group entities ✅ (Control entire groups as individual light entities)
+- Fade time control ✅ (Smooth transitions with DALI native fade support)
 - RGB/Color temperature support ⚠️ (Implemented but needs testing)
 - Error handling ⚠️ (Basic implementation, needs improvement)
 - Production stability ❌ (Still in development/testing phase)
@@ -178,6 +179,62 @@ data:
   brightness_pct: 80
 ```
 
+### DALI Fade Time Control
+
+Control smooth lighting transitions with DALI-native fade support for professional lighting effects.
+
+#### **Standard Home Assistant Transition**
+Use the standard `transition` parameter with any light command:
+
+```yaml
+# Smooth dimming over 3 seconds
+service: light.turn_on
+target:
+  entity_id: light.dali_device_1
+data:
+  brightness_pct: 80
+  transition: 3
+
+# Color change with 2-second fade (groups work too!)
+service: light.turn_on
+target:
+  entity_id: light.dali_group_5
+data:
+  rgb_color: [255, 100, 0]
+  transition: 2
+
+# Smooth turn off over 1.5 seconds
+service: light.turn_off
+target:
+  entity_id: light.dali_device_2
+data:
+  transition: 1.5
+```
+
+#### **Set Device Fade Time**
+Configure default fade time for devices and groups:
+
+```yaml
+# Set fade time for individual device
+service: dali2_iot.set_fade_time
+data:
+  device_id: 3        # DALI device ID
+  fade_time: 1.5      # Fade time in seconds (0.0 - 60.0)
+
+# Set fade time for entire group
+service: dali2_iot.set_group_fade_time
+data:
+  group_id: 5         # DALI group ID  
+  fade_time: 2.0      # Fade time in seconds
+```
+
+#### **Technical Features**
+- **DALI-Native**: Uses actual DALI `*WithFade` API parameters
+- **Intelligent Conversion**: Automatically converts standard commands to fade variants
+- **Both Approaches**: Per-command transitions + global device settings
+- **Full Support**: Works with brightness, RGB colors, color temperature
+- **Group Compatible**: All fade features work with DALI groups
+
 ## API Endpoints
 
 The integration communicates with DALI2 IoT controllers using these HTTP endpoints:
@@ -202,6 +259,7 @@ The DALI-2 IoT controller has many advanced features. This integration currently
 - **DALI Groups**: Complete group management with entities and services
 - **Device Scanning**: Automated DALI bus scanning with new installation mode
 - **Basic Light Control**: On/off, dimming, RGB color, color temperature
+- **Fade Time Control**: Smooth transitions with DALI-native fade support
 - **Group Membership Management**: Add/remove devices from groups via services
 - **Real-time Status**: Device and group state monitoring with optimistic updates
 
@@ -236,7 +294,7 @@ Advanced scene control beyond basic on/off:
 
 #### **Enhanced Device Features**
 Additional DALI device capabilities:
-- Fade time control
+- ✅ **Fade time control** - Implemented with full DALI native support
 - Scene setting and recall
 - Advanced color control features
 - Device-specific configuration options

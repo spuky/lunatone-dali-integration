@@ -10,6 +10,7 @@ from homeassistant.components.light import (
     ATTR_BRIGHTNESS,
     ATTR_COLOR_TEMP_KELVIN,
     ATTR_RGB_COLOR,
+    ATTR_TRANSITION,
     ColorMode,
     LightEntity,
     DEFAULT_MIN_KELVIN,
@@ -198,7 +199,8 @@ class Dali2IotLight(LightEntity):
         """Turn the light on."""
         # Check if light is currently on to decide whether to send switchable command
         current_is_on = self.is_on
-        brightness_only = ATTR_BRIGHTNESS in kwargs and len(kwargs) == 1
+        transition_time = kwargs.get(ATTR_TRANSITION)
+        brightness_only = ATTR_BRIGHTNESS in kwargs and len([k for k in kwargs.keys() if k != ATTR_TRANSITION]) == 1
         
         # Optimistically update local state for immediate UI feedback
         self._optimistic_state["switchable"] = True
@@ -241,8 +243,13 @@ class Dali2IotLight(LightEntity):
         # Sending command to device (debug logging removed)
         
         try:
-            # Send command to device
-            await self._coordinator.device.async_control_device(self._device_id, data)
+            # Send command to device - use fade-enabled control if transition is specified
+            if transition_time is not None:
+                await self._coordinator.device.async_control_device_with_fade(
+                    self._device_id, data, transition_time
+                )
+            else:
+                await self._coordinator.device.async_control_device(self._device_id, data)
             
             # Refresh coordinator data but keep optimistic state during grace period
             await self._coordinator.async_request_refresh()
@@ -447,7 +454,8 @@ class Dali2IotGroupLight(LightEntity):
         """Turn the group on."""
         # Check if group is currently on to decide whether to send switchable command
         current_is_on = self.is_on
-        brightness_only = ATTR_BRIGHTNESS in kwargs and len(kwargs) == 1
+        transition_time = kwargs.get(ATTR_TRANSITION)
+        brightness_only = ATTR_BRIGHTNESS in kwargs and len([k for k in kwargs.keys() if k != ATTR_TRANSITION]) == 1
         
         # Optimistic update
         self._optimistic_state["switchable"] = True
@@ -486,7 +494,12 @@ class Dali2IotGroupLight(LightEntity):
         
         try:
             # Send command to group - much more efficient than individual devices!
-            await self._coordinator.device.async_control_group(self._group_id, data)
+            if transition_time is not None:
+                await self._coordinator.device.async_control_group_with_fade(
+                    self._group_id, data, transition_time
+                )
+            else:
+                await self._coordinator.device.async_control_group(self._group_id, data)
             
             # Refresh coordinator data
             await self._coordinator.async_request_refresh()

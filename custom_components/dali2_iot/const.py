@@ -16,10 +16,11 @@ DEFAULT_TIMEOUT: Final = 10
 
 # Services
 SERVICE_SET_SCENE: Final = "set_scene"
-SERVICE_SET_FADE_TIME: Final = "set_fade_time"
 SERVICE_ADD_TO_GROUP: Final = "add_to_group"
 SERVICE_REMOVE_FROM_GROUP: Final = "remove_from_group"
 SERVICE_UPDATE_DEVICE_GROUPS: Final = "update_device_groups"
+SERVICE_SET_FADE_TIME: Final = "set_fade_time"
+SERVICE_SET_GROUP_FADE_TIME: Final = "set_group_fade_time"
 
 # Attributes
 ATTR_SCENE: Final = "scene"
