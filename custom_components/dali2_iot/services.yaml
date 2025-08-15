@@ -15,3 +15,82 @@ scan_devices:
       default: false
       selector:
         boolean:
+
+add_to_group:
+  name: Add device to DALI group
+  description: Add a DALI device to a specific group
+  fields:
+    device_id:
+      name: Device ID
+      description: The ID of the DALI device to add to the group
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 63
+    group_id:
+      name: Group ID
+      description: The ID of the DALI group (0-15)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 15
+    entry_id:
+      name: Entry ID
+      description: Config entry ID of the DALI2 IoT device (optional, uses first device if not specified)
+      required: false
+      selector:
+        text:
+
+remove_from_group:
+  name: Remove device from DALI group
+  description: Remove a DALI device from a specific group
+  fields:
+    device_id:
+      name: Device ID
+      description: The ID of the DALI device to remove from the group
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 63
+    group_id:
+      name: Group ID
+      description: The ID of the DALI group (0-15)
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 15
+    entry_id:
+      name: Entry ID
+      description: Config entry ID of the DALI2 IoT device (optional, uses first device if not specified)
+      required: false
+      selector:
+        text:
+
+update_device_groups:
+  name: Update device group memberships
+  description: Set all group memberships for a DALI device (replaces existing memberships)
+  fields:
+    device_id:
+      name: Device ID
+      description: The ID of the DALI device to update
+      required: true
+      selector:
+        number:
+          min: 0
+          max: 63
+    groups:
+      name: Groups
+      description: List of group IDs (0-15) the device should belong to
+      required: true
+      selector:
+        object:
+    entry_id:
+      name: Entry ID
+      description: Config entry ID of the DALI2 IoT device (optional, uses first device if not specified)
+      required: false
+      selector:
+        text:

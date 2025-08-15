@@ -120,4 +120,89 @@ class Dali2IotDevice:
                     raise Dali2IotConnectionError(f"Failed to get scan status from {self._host}: {response.status}")
         except (asyncio.TimeoutError, aiohttp.ClientError) as err:
             _LOGGER.error("Error getting scan status from %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_update_device_groups(
+        self, device_id: int, groups: list[int]
+    ) -> bool:
+        """Update device group membership."""
+        try:
+            data = {"groups": groups}
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.put(
+                    f"{self._base_url}/device/{device_id}",
+                    json=data,
+                ) as response:
+                    if response.status == 200:
+                        return True
+                    _LOGGER.error("Failed to update device groups at %s: %s", self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to update device groups at {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error updating device groups at %s: %s", self._host, err)
+            raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err
+
+    async def async_add_device_to_group(
+        self, device_id: int, group_id: int
+    ) -> bool:
+        """Add device to a DALI group."""
+        # Get current device data to retrieve existing groups
+        devices = await self.async_get_devices()
+        device = next((d for d in devices if d["id"] == device_id), None)
+        
+        if not device:
+            _LOGGER.error("Device %s not found", device_id)
+            raise Dali2IotConnectionError(f"Device {device_id} not found")
+        
+        current_groups = device.get("groups", [])
+        
+        # Add group if not already present
+        if group_id not in current_groups:
+            new_groups = current_groups + [group_id]
+            return await self.async_update_device_groups(device_id, new_groups)
+        
+        return True  # Already in group
+
+    async def async_remove_device_from_group(
+        self, device_id: int, group_id: int
+    ) -> bool:
+        """Remove device from a DALI group."""
+        # Get current device data to retrieve existing groups
+        devices = await self.async_get_devices()
+        device = next((d for d in devices if d["id"] == device_id), None)
+        
+        if not device:
+            _LOGGER.error("Device %s not found", device_id)
+            raise Dali2IotConnectionError(f"Device {device_id} not found")
+        
+        current_groups = device.get("groups", [])
+        
+        # Remove group if present
+        if group_id in current_groups:
+            new_groups = [g for g in current_groups if g != group_id]
+            return await self.async_update_device_groups(device_id, new_groups)
+        
+        return True  # Not in group anyway
+
+    async def async_control_group(
+        self, group_id: int, data: dict[str, Any], line: int | None = None
+    ) -> bool:
+        """Control a DALI group."""
+        try:
+            url = f"{self._base_url}/group/{group_id}/control"
+            params = {}
+            if line is not None:
+                params["_line"] = line
+            
+            async with async_timeout.timeout(API_TIMEOUT):
+                async with self._session.post(
+                    url,
+                    json=data,
+                    params=params if params else None,
+                ) as response:
+                    if response.status == 204:
+                        return True
+                    _LOGGER.error("Failed to control group %s at %s: %s", group_id, self._host, response.status)
+                    raise Dali2IotConnectionError(f"Failed to control group {group_id} at {self._host}: {response.status}")
+        except (asyncio.TimeoutError, aiohttp.ClientError) as err:
+            _LOGGER.error("Error controlling group %s at %s: %s", group_id, self._host, err)
             raise Dali2IotConnectionError(f"Connection failed to {self._host}: {err}") from err 

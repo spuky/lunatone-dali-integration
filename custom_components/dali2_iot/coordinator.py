@@ -34,16 +34,63 @@ class Dali2IotCoordinator(DataUpdateCoordinator):
         )
         self.device = device
         self._devices: list[dict[str, Any]] = []
+        self._groups: dict[int, dict[str, Any]] = {}
 
     async def _async_update_data(self) -> dict[str, Any]:
         """Fetch data from the DALI2 IoT device."""
         devices = await self.device.async_get_devices()
         self._devices = devices
-        return {"devices": devices}
+        
+        # Extract groups from device data
+        self._groups = self._extract_groups_from_devices(devices)
+        
+        return {"devices": devices, "groups": self._groups}
 
     def get_device(self, device_id: int) -> dict[str, Any] | None:
         """Get device by ID."""
         for device in self._devices:
             if device.get("id") == device_id:
                 return device
-        return None 
+        return None
+    
+    def _extract_groups_from_devices(self, devices: list[dict[str, Any]]) -> dict[int, dict[str, Any]]:
+        """Extract group information from device data."""
+        groups = {}
+        
+        # Collect all group IDs and their member devices
+        for device in devices:
+            device_groups = device.get("groups", [])
+            device_id = device.get("id")
+            device_features = device.get("features", {})
+            
+            for group_id in device_groups:
+                if group_id not in groups:
+                    groups[group_id] = {
+                        "id": group_id,
+                        "name": f"DALI Group {group_id}",
+                        "members": [],
+                        "features": {},
+                    }
+                
+                # Add device to group
+                groups[group_id]["members"].append({
+                    "id": device_id,
+                    "name": device.get("name", f"Device {device_id}"),
+                    "features": device_features,
+                })
+                
+                # Aggregate features from all devices in group
+                # A group supports a feature if any member supports it
+                for feature_name, feature_data in device_features.items():
+                    if feature_name not in groups[group_id]["features"]:
+                        groups[group_id]["features"][feature_name] = feature_data
+        
+        return groups
+    
+    def get_group(self, group_id: int) -> dict[str, Any] | None:
+        """Get group by ID."""
+        return self._groups.get(group_id)
+    
+    def get_all_groups(self) -> dict[int, dict[str, Any]]:
+        """Get all groups."""
+        return self._groups 
