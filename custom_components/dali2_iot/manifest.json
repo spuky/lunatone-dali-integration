@@ -2,6 +2,7 @@
   "domain": "dali2_iot",
   "name": "DALI2 IoT",
   "documentation": "https://github.com/spuky/lunatone-dali-integration",
+  "issue_tracker": "https://github.com/spuky/lunatone-dali-integration/issues",
   "dependencies": [],
   "codeowners": ["@spuky"],
   "requirements": ["aiohttp>=3.8.0", "async_timeout>=4.0.0"],
