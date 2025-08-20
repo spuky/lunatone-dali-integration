@@ -11,14 +11,23 @@
       },
       "select": {
         "title": "Select DALI2 IoT Device",
-        "description": "Choose from discovered devices",
+        "description": "Choose from discovered devices or enter manually",
         "data": {
           "device": "Device"
+        }
+      },
+      "manual": {
+        "title": "Manual DALI2 IoT Setup",
+        "description": "Manually configure your DALI2 IoT device",
+        "data": {
+          "host": "Host IP Address",
+          "name": "Device Name"
         }
       }
     },
     "error": {
-      "cannot_connect": "Failed to connect to device"
+      "cannot_connect": "Failed to connect to device",
+      "device_already_configured": "This device is already configured"
     },
     "abort": {
       "already_configured": "Device is already configured"

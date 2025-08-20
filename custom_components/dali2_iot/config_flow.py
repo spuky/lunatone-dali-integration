@@ -44,13 +44,157 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             self._discovery = Dali2IotDiscovery(self.hass)
             self._discovered_devices = await self._discovery.discover()
             
-            if self._discovered_devices:
-                # If we found devices, show the selection form
-                return await self.async_step_select()
+            # Always show the selection form (including manual entry option)
+            return await self.async_step_select()
+
+        # This should not be reached as we always go through select step
+        return self.async_abort(reason="invalid_flow")
+
+    async def async_step_select(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle the step to select discovered device or manual entry."""
+        if user_input is None:
+            # Get already configured hosts
+            configured_hosts = {
+                entry.data[CONF_HOST] 
+                for entry in self._async_current_entries()
+            }
             
-            # If no devices found, show manual entry form
+            # Filter out already configured devices
+            available_devices = [
+                device for device in self._discovered_devices
+                if device["host"] not in configured_hosts
+            ]
+            
+            # Build device selection options
+            device_options = {}
+            
+            # Add available discovered devices
+            for device in available_devices:
+                device_options[device["host"]] = f"{device['name']} ({device['host']})"
+            
+            # Add already configured devices (marked as unavailable)
+            configured_devices = [
+                device for device in self._discovered_devices
+                if device["host"] in configured_hosts
+            ]
+            for device in configured_devices:
+                device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
+            
+            # Always add manual entry option
+            device_options["manual"] = "Manual entry..."
+            
             return self.async_show_form(
-                step_id="user",
+                step_id="select",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("device"): vol.In(device_options)
+                    }
+                ),
+            )
+
+        # Handle user selection
+        selected_option = user_input["device"]
+        
+        # Check if manual entry was selected
+        if selected_option == "manual":
+            return await self.async_step_manual()
+        
+        # Check if a configured device was selected (should not be selectable)
+        if selected_option.startswith("configured_"):
+            return self.async_show_form(
+                step_id="select",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("device"): vol.In(self._get_device_options())
+                    }
+                ),
+                errors={"base": "device_already_configured"},
+            )
+
+        # Get selected available device
+        selected_device = next(
+            device
+            for device in self._discovered_devices
+            if device["host"] == selected_option
+        )
+
+        # Validate the connection
+        try:
+            test_device = Dali2IotDevice(
+                selected_option,
+                selected_device["name"],
+                async_get_clientsession(self.hass),
+            )
+            await test_device.async_get_info()
+        except Dali2IotConnectionError as ex:
+            _LOGGER.error("Error connecting to device at %s: %s", selected_option, ex)
+            return self.async_show_form(
+                step_id="select",
+                data_schema=vol.Schema(
+                    {
+                        vol.Required("device"): vol.In(self._get_device_options())
+                    }
+                ),
+                errors={"base": "cannot_connect"},
+            )
+
+        # Check if we already have this device configured (double-check)
+        await self.async_set_unique_id(selected_option)
+        self._abort_if_unique_id_configured()
+
+        return self.async_create_entry(
+            title=selected_device["name"],
+            data={
+                CONF_HOST: selected_option,
+                CONF_NAME: selected_device["name"],
+            },
+        )
+    
+    def _get_device_options(self) -> dict[str, str]:
+        """Get device options for the selection form."""
+        # Get already configured hosts
+        configured_hosts = {
+            entry.data[CONF_HOST] 
+            for entry in self._async_current_entries()
+        }
+        
+        # Filter out already configured devices
+        available_devices = [
+            device for device in self._discovered_devices
+            if device["host"] not in configured_hosts
+        ]
+        
+        # Build device selection options
+        device_options = {}
+        
+        # Add available discovered devices
+        for device in available_devices:
+            device_options[device["host"]] = f"{device['name']} ({device['host']})"
+        
+        # Add already configured devices (marked as unavailable)
+        configured_devices = [
+            device for device in self._discovered_devices
+            if device["host"] in configured_hosts
+        ]
+        for device in configured_devices:
+            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
+        
+        # Always add manual entry option
+        device_options["manual"] = "Manual entry..."
+        
+        return device_options
+
+    async def async_step_manual(
+        self, user_input: dict[str, Any] | None = None
+    ) -> FlowResult:
+        """Handle manual device entry."""
+        errors = {}
+
+        if user_input is None:
+            return self.async_show_form(
+                step_id="manual",
                 data_schema=vol.Schema(
                     {
                         vol.Required(CONF_HOST): str,
@@ -76,7 +220,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             _LOGGER.error("Error connecting to device at %s: %s", self._host, ex)
             errors["base"] = "cannot_connect"
             return self.async_show_form(
-                step_id="user",
+                step_id="manual",
                 data_schema=vol.Schema(
                     {
                         vol.Required(CONF_HOST): str,
@@ -95,71 +239,6 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             data={
                 CONF_HOST: self._host,
                 CONF_NAME: self._name,
-            },
-        )
-
-    async def async_step_select(
-        self, user_input: dict[str, Any] | None = None
-    ) -> FlowResult:
-        """Handle the step to select discovered device."""
-        if user_input is None:
-            # Show selection form
-            return self.async_show_form(
-                step_id="select",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required("device"): vol.In(
-                            {
-                                device["host"]: f"{device['name']} ({device['host']})"
-                                for device in self._discovered_devices
-                            }
-                        )
-                    }
-                ),
-            )
-
-        # Get selected device
-        selected_host = user_input["device"]
-        selected_device = next(
-            device
-            for device in self._discovered_devices
-            if device["host"] == selected_host
-        )
-
-        # Check if we already have this device configured
-        await self.async_set_unique_id(selected_host)
-        self._abort_if_unique_id_configured()
-
-        # Validate the connection
-        try:
-            test_device = Dali2IotDevice(
-                selected_host,
-                selected_device["name"],
-                async_get_clientsession(self.hass),
-            )
-            await test_device.async_get_info()
-        except Dali2IotConnectionError as ex:
-            _LOGGER.error("Error connecting to device at %s: %s", selected_host, ex)
-            return self.async_show_form(
-                step_id="select",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required("device"): vol.In(
-                            {
-                                device["host"]: f"{device['name']} ({device['host']})"
-                                for device in self._discovered_devices
-                            }
-                        )
-                    }
-                ),
-                errors={"base": "cannot_connect"},
-            )
-
-        return self.async_create_entry(
-            title=selected_device["name"],
-            data={
-                CONF_HOST: selected_host,
-                CONF_NAME: selected_device["name"],
             },
         )
 
