@@ -1,0 +1,164 @@
+{
+  "config": {
+    "step": {
+      "user": {
+        "title": "DALI2 IoT Einrichtung",
+        "description": "Konfigurieren Sie Ihr DALI2 IoT Gerät",
+        "data": {
+          "host": "Host IP-Adresse",
+          "name": "Gerätename"
+        }
+      },
+      "select": {
+        "title": "DALI2 IoT Gerät auswählen",
+        "description": "Wählen Sie aus erkannten Geräten oder geben Sie manuell ein",
+        "data": {
+          "device": "Gerät"
+        }
+      },
+      "manual": {
+        "title": "Manuelle DALI2 IoT Einrichtung",
+        "description": "Konfigurieren Sie Ihr DALI2 IoT Gerät manuell",
+        "data": {
+          "host": "Host IP-Adresse",
+          "name": "Gerätename"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Verbindung zum Gerät fehlgeschlagen",
+      "device_already_configured": "Dieses Gerät ist bereits konfiguriert"
+    },
+    "abort": {
+      "already_configured": "Gerät ist bereits konfiguriert"
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DALI2 IoT Optionen",
+        "description": "Optionen für DALI2 IoT Gerät bei {device_host} konfigurieren",
+        "data": {
+          "scan_devices": "Nach neuen DALI-Geräten suchen"
+        }
+      },
+      "scan": {
+        "title": "DALI-Geräte-Scan",
+        "description": "Starten Sie einen Scan nach neuen DALI-Geräten auf {device_host}",
+        "data": {
+          "new_installation": "Neue Installation (löscht bestehende Geräte - mit Vorsicht verwenden!)"
+        }
+      }
+    },
+    "abort": {
+      "device_not_found": "DALI2 IoT Gerät nicht gefunden",
+      "scan_failed": "Geräte-Scan konnte nicht gestartet werden"
+    }
+  },
+  "services": {
+    "scan_devices": {
+      "name": "Nach DALI-Geräten suchen",
+      "description": "Starten Sie einen Scan nach neuen DALI-Geräten auf dem Bus",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        },
+        "new_installation": {
+          "name": "Neue Installation",
+          "description": "Auf true setzen, um alle bestehenden Geräte vor dem Scan zu löschen (mit Vorsicht verwenden!)"
+        }
+      }
+    },
+    "add_to_group": {
+      "name": "Gerät zu DALI-Gruppe hinzufügen",
+      "description": "Ein DALI-Gerät zu einer bestimmten Gruppe hinzufügen",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Die ID des DALI-Geräts, das zur Gruppe hinzugefügt werden soll"
+        },
+        "group_id": {
+          "name": "Gruppen-ID",
+          "description": "Die ID der DALI-Gruppe (0-15)"
+        },
+        "entry_id": {
+          "name": "Eintrag-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        }
+      }
+    },
+    "remove_from_group": {
+      "name": "Gerät aus DALI-Gruppe entfernen",
+      "description": "Ein DALI-Gerät aus einer bestimmten Gruppe entfernen",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Die ID des DALI-Geräts, das aus der Gruppe entfernt werden soll"
+        },
+        "group_id": {
+          "name": "Gruppen-ID",
+          "description": "Die ID der DALI-Gruppe (0-15)"
+        },
+        "entry_id": {
+          "name": "Eintrag-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        }
+      }
+    },
+    "update_device_groups": {
+      "name": "Geräte-Gruppenmitgliedschaften aktualisieren",
+      "description": "Alle Gruppenmitgliedschaften für ein DALI-Gerät setzen (ersetzt bestehende Mitgliedschaften)",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Die ID des zu aktualisierenden DALI-Geräts"
+        },
+        "groups": {
+          "name": "Gruppen",
+          "description": "Liste der Gruppen-IDs (0-15), zu denen das Gerät gehören soll"
+        },
+        "entry_id": {
+          "name": "Eintrag-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        }
+      }
+    },
+    "set_fade_time": {
+      "name": "Geräte-Überblendzeit setzen",
+      "description": "Die Überblendzeit für ein DALI-Gerät in Sekunden setzen",
+      "fields": {
+        "device_id": {
+          "name": "Geräte-ID",
+          "description": "Die ID des DALI-Geräts, für das die Überblendzeit gesetzt werden soll"
+        },
+        "fade_time": {
+          "name": "Überblendzeit",
+          "description": "Überblendzeit in Sekunden (0,0 - 60,0)"
+        },
+        "entry_id": {
+          "name": "Eintrag-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        }
+      }
+    },
+    "set_group_fade_time": {
+      "name": "Gruppen-Überblendzeit setzen",
+      "description": "Die Überblendzeit für eine DALI-Gruppe in Sekunden setzen",
+      "fields": {
+        "group_id": {
+          "name": "Gruppen-ID",
+          "description": "Die ID der DALI-Gruppe, für die die Überblendzeit gesetzt werden soll"
+        },
+        "fade_time": {
+          "name": "Überblendzeit",
+          "description": "Überblendzeit in Sekunden (0,0 - 60,0)"
+        },
+        "entry_id": {
+          "name": "Eintrag-ID",
+          "description": "Konfigurations-Eintrag-ID des DALI2 IoT Geräts (optional, verwendet erstes Gerät falls nicht angegeben)"
+        }
+      }
+    }
+  }
+}
