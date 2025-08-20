@@ -3,7 +3,7 @@
     "step": {
       "select": {
         "title": "Select DALI2 IoT Device",
-        "description": "Choose from discovered devices or enter manually",
+        "description": "Choose from discovered devices or choose Manual entry",
         "data": {
           "device": "Device"
         }
@@ -28,7 +28,7 @@
   "selector": {
     "device_selection": {
       "options": {
-        "manual_entry": "Manual entry..."
+        "manual_entry": "Manual entry"
       }
     }
   },

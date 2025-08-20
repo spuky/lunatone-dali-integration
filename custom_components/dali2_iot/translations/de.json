@@ -3,7 +3,7 @@
     "step": {
       "select": {
         "title": "DALI2 IoT Gerät auswählen",
-        "description": "Wählen Sie aus erkannten Geräten oder geben Sie manuell ein",
+        "description": "Wählen Sie aus erkannten Geräten oder wählen Sie Manuelle Eingabe",
         "data": {
           "device": "Gerät"
         }
@@ -28,7 +28,7 @@
   "selector": {
     "device_selection": {
       "options": {
-        "manual_entry": "Manuelle Eingabe..."
+        "manual_entry": "Manuelle Eingabe"
       }
     }
   },
