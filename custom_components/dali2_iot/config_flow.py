@@ -291,7 +291,7 @@ class Dali2IotOptionsFlow(config_entries.OptionsFlow):
                 return self.async_create_entry(
                     title="", 
                     data={},
-                    description="DALI-Scan wurde erfolgreich gestartet! Neue Geräte erscheinen automatisch in Home Assistant."
+                    description="DALI scan started successfully! New devices will appear automatically in Home Assistant."
                 )
                 
             except Exception as err:
