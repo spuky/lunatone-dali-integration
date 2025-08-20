@@ -11,7 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.selector as selector
 
-from .const import DOMAIN
+from .const import DOMAIN, MANUAL_ENTRY_TRANSLATION_KEY
 from .device import Dali2IotDevice, Dali2IotConnectionError
 from .discovery import Dali2IotDiscovery
 
@@ -44,7 +44,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             # First time through, try to discover devices
             self._discovery = Dali2IotDiscovery(self.hass)
             self._discovered_devices = await self._discovery.discover()
-            
+
             # Always show the selection form (including manual entry option)
             return await self.async_step_select()
 
@@ -58,27 +58,27 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         if user_input is None or errors:
             # Get already configured hosts
             configured_hosts = {
-                entry.data[CONF_HOST] 
+                entry.data[CONF_HOST]
                 for entry in self._async_current_entries()
             }
-            
+
             # Filter out already configured devices
             available_devices = [
                 device for device in self._discovered_devices
                 if device["host"] not in configured_hosts
             ]
-            
+
             # Build selector options
             selector_options = []
-            
+
             # Add available discovered devices
             for device in available_devices:
                 selector_options.append({
                     "value": device["host"],
                     "label": f"{device['name']} ({device['host']})"
                 })
-            
-            # Add already configured devices (marked as unavailable) 
+
+            # Add already configured devices (marked as unavailable)
             configured_devices = [
                 device for device in self._discovered_devices
                 if device["host"] in configured_hosts
@@ -88,13 +88,13 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                     "value": f"configured_{device['host']}",
                     "label": f"{device['name']} ({device['host']}) - Already configured"
                 })
-            
+
             # Always add manual entry option with translation key
             selector_options.append({
-                "value": "manual",
-                "label": "manual_entry"
+                "value": 'manual',
+                "label": MANUAL_ENTRY_TRANSLATION_KEY
             })
-            
+
             return self.async_show_form(
                 step_id="select",
                 data_schema=vol.Schema(
@@ -112,11 +112,11 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
 
         # Handle user selection
         selected_option = user_input["device"]
-        
+
         # Check if manual entry was selected
         if selected_option == "manual":
             return await self.async_step_manual()
-        
+
         # Check if a configured device was selected (should not be selectable)
         if selected_option.startswith("configured_"):
             return await self.async_step_select(None, {"base": "device_already_configured"})
@@ -151,40 +151,6 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 CONF_NAME: selected_device["name"],
             },
         )
-    
-    def _get_device_options(self) -> dict[str, str]:
-        """Get device options for the selection form."""
-        # Get already configured hosts
-        configured_hosts = {
-            entry.data[CONF_HOST] 
-            for entry in self._async_current_entries()
-        }
-        
-        # Filter out already configured devices
-        available_devices = [
-            device for device in self._discovered_devices
-            if device["host"] not in configured_hosts
-        ]
-        
-        # Build device selection options
-        device_options = {}
-        
-        # Add available discovered devices
-        for device in available_devices:
-            device_options[device["host"]] = f"{device['name']} ({device['host']})"
-        
-        # Add already configured devices (marked as unavailable)
-        configured_devices = [
-            device for device in self._discovered_devices
-            if device["host"] in configured_hosts
-        ]
-        for device in configured_devices:
-            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
-        
-        # Always add manual entry option
-        device_options["manual"] = "Manual entry..."
-        
-        return device_options
 
     async def async_step_manual(
         self, user_input: dict[str, Any] | None = None
@@ -284,16 +250,16 @@ class Dali2IotOptionsFlow(config_entries.OptionsFlow):
                 _LOGGER.info("Starting DALI scan from options (new_installation=%s)", new_installation)
                 scan_result = await coordinator.device.async_start_scan(new_installation)
                 _LOGGER.info("DALI scan started: %s", scan_result)
-                
+
                 # Refresh coordinator data
                 await coordinator.async_request_refresh()
-                
+
                 return self.async_create_entry(
-                    title="", 
+                    title="",
                     data={},
                     description="DALI scan started successfully! New devices will appear automatically in Home Assistant."
                 )
-                
+
             except Exception as err:
                 _LOGGER.error("Failed to start DALI scan from options: %s", err)
                 return self.async_abort(reason="scan_failed")
@@ -306,4 +272,4 @@ class Dali2IotOptionsFlow(config_entries.OptionsFlow):
             description_placeholders={
                 "device_host": self.config_entry.data[CONF_HOST],
             },
-        ) 
+        )

@@ -27,4 +27,7 @@ ATTR_SCENE: Final = "scene"
 ATTR_FADE_TIME: Final = "fade_time"
 ATTR_DEVICE_ID: Final = "device_id"
 ATTR_GROUP_ID: Final = "group_id"
-ATTR_GROUPS: Final = "groups" 
+ATTR_GROUPS: Final = "groups"
+
+# Config Flow Options
+MANUAL_ENTRY_TRANSLATION_KEY = "manual_entry"
