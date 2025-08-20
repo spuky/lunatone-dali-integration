@@ -1,14 +1,6 @@
 {
   "config": {
     "step": {
-      "user": {
-        "title": "DALI2 IoT Setup",
-        "description": "Configure your DALI2 IoT device",
-        "data": {
-          "host": "Host IP Address",
-          "name": "Device Name"
-        }
-      },
       "select": {
         "title": "Select DALI2 IoT Device",
         "description": "Choose from discovered devices or enter manually",
