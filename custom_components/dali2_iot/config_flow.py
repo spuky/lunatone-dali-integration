@@ -9,6 +9,7 @@ from homeassistant import config_entries
 from homeassistant.const import CONF_HOST, CONF_NAME
 from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
+import homeassistant.helpers.selector as selector
 
 from .const import DOMAIN
 from .device import Dali2IotDevice, Dali2IotConnectionError
@@ -51,10 +52,10 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         return self.async_abort(reason="invalid_flow")
 
     async def async_step_select(
-        self, user_input: dict[str, Any] | None = None
+        self, user_input: dict[str, Any] | None = None, errors: dict[str, str] | None = None
     ) -> FlowResult:
         """Handle the step to select discovered device or manual entry."""
-        if user_input is None:
+        if user_input is None or errors:
             # Get already configured hosts
             configured_hosts = {
                 entry.data[CONF_HOST] 
@@ -67,37 +68,46 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if device["host"] not in configured_hosts
             ]
             
-            # Build device selection options
-            device_options = {}
+            # Build selector options
+            selector_options = []
             
             # Add available discovered devices
             for device in available_devices:
-                device_options[device["host"]] = f"{device['name']} ({device['host']})"
+                selector_options.append({
+                    "value": device["host"],
+                    "label": f"{device['name']} ({device['host']})"
+                })
             
-            # Add already configured devices (marked as unavailable)
+            # Add already configured devices (marked as unavailable) 
             configured_devices = [
                 device for device in self._discovered_devices
                 if device["host"] in configured_hosts
             ]
             for device in configured_devices:
-                already_configured_text = self.hass.localize(
-                    f"component.{DOMAIN}.config.device_options.already_configured_suffix"
-                ) or "Already configured"
-                device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - {already_configured_text}"
+                selector_options.append({
+                    "value": f"configured_{device['host']}",
+                    "label": f"{device['name']} ({device['host']}) - Already configured"
+                })
             
-            # Always add manual entry option
-            manual_entry_text = self.hass.localize(
-                f"component.{DOMAIN}.config.device_options.manual_entry"
-            ) or "Manual entry..."
-            device_options["manual"] = manual_entry_text
+            # Always add manual entry option with translation key
+            selector_options.append({
+                "value": "manual",
+                "label": "manual_entry"
+            })
             
             return self.async_show_form(
                 step_id="select",
                 data_schema=vol.Schema(
                     {
-                        vol.Required("device"): vol.In(device_options)
+                        vol.Required("device"): selector.SelectSelector(
+                            selector.SelectSelectorConfig(
+                                options=selector_options,
+                                translation_key="device_selection"
+                            )
+                        )
                     }
                 ),
+                errors=errors or {},
             )
 
         # Handle user selection
@@ -109,15 +119,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
         
         # Check if a configured device was selected (should not be selectable)
         if selected_option.startswith("configured_"):
-            return self.async_show_form(
-                step_id="select",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required("device"): vol.In(self._get_device_options())
-                    }
-                ),
-                errors={"base": "device_already_configured"},
-            )
+            return await self.async_step_select(None, {"base": "device_already_configured"})
 
         # Get selected available device
         selected_device = next(
@@ -136,15 +138,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             await test_device.async_get_info()
         except Dali2IotConnectionError as ex:
             _LOGGER.error("Error connecting to device at %s: %s", selected_option, ex)
-            return self.async_show_form(
-                step_id="select",
-                data_schema=vol.Schema(
-                    {
-                        vol.Required("device"): vol.In(self._get_device_options())
-                    }
-                ),
-                errors={"base": "cannot_connect"},
-            )
+            return await self.async_step_select(None, {"base": "cannot_connect"})
 
         # Check if we already have this device configured (double-check)
         await self.async_set_unique_id(selected_option)
@@ -185,16 +179,10 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if device["host"] in configured_hosts
         ]
         for device in configured_devices:
-            already_configured_text = self.hass.localize(
-                f"component.{DOMAIN}.config.device_options.already_configured_suffix"
-            ) or "Already configured"
-            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - {already_configured_text}"
+            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
         
         # Always add manual entry option
-        manual_entry_text = self.hass.localize(
-            f"component.{DOMAIN}.config.device_options.manual_entry"
-        ) or "Manual entry..."
-        device_options["manual"] = manual_entry_text
+        device_options["manual"] = "Manual entry..."
         
         return device_options
 

@@ -34,10 +34,13 @@
     },
     "abort": {
       "already_configured": "Device is already configured"
-    },
-    "device_options": {
-      "manual_entry": "Manual entry...",
-      "already_configured_suffix": "Already configured"
+    }
+  },
+  "selector": {
+    "device_selection": {
+      "options": {
+        "manual_entry": "Manual entry..."
+      }
     }
   },
   "options": {
