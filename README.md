@@ -75,12 +75,17 @@ A Home Assistant custom integration for controlling DALI2 IoT devices via networ
 5. Click **Submit** to complete setup
 
 ### Manual Configuration
+
+If automatic discovery does not work for example your device is in a different subnet, 
+you can manually configure the integration:
+
 1. Navigate to **Settings** > **Devices & Services**
 2. Click **+ ADD INTEGRATION**
 3. Search for "DALI2 IoT"
-4. Enter your DALI2 IoT controller's IP address
-5. Provide a name for the device (optional)
-6. Click **Submit**
+4. Choose Manual entry... 
+5. Enter your DALI2 IoT controller's IP address
+6. Provide a name for the device (optional)
+7Click **Submit**
 
 ## Device Management
 
