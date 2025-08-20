@@ -1,0 +1,163 @@
+{
+  "config": {
+    "step": {
+      "select": {
+        "title": "Select DALI2 IoT Device",
+        "description": "Choose from discovered devices or enter manually",
+        "data": {
+          "device": "Device"
+        }
+      },
+      "manual": {
+        "title": "Manual DALI2 IoT Setup",
+        "description": "Manually configure your DALI2 IoT device",
+        "data": {
+          "host": "Host IP Address",
+          "name": "Device Name"
+        }
+      }
+    },
+    "error": {
+      "cannot_connect": "Failed to connect to device",
+      "device_already_configured": "This device is already configured"
+    },
+    "abort": {
+      "already_configured": "Device is already configured"
+    }
+  },
+  "selector": {
+    "device_selection": {
+      "options": {
+        "manual_entry": "Manual entry..."
+      }
+    }
+  },
+  "options": {
+    "step": {
+      "init": {
+        "title": "DALI2 IoT Options",
+        "description": "Configure options for DALI2 IoT device at {device_host}",
+        "data": {
+          "scan_devices": "Scan for new DALI devices"
+        }
+      },
+      "scan": {
+        "title": "DALI Device Scan",
+        "description": "Start a scan for new DALI devices on {device_host}",
+        "data": {
+          "new_installation": "New installation (deletes existing devices - use with caution!)"
+        }
+      }
+    },
+    "abort": {
+      "device_not_found": "DALI2 IoT device not found",
+      "scan_failed": "Failed to start device scan"
+    }
+  },
+  "services": {
+    "scan_devices": {
+      "name": "Scan for DALI devices",
+      "description": "Start a scan for new DALI devices on the bus",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        },
+        "new_installation": {
+          "name": "New Installation",
+          "description": "Set to true to delete all existing devices before scanning (use with caution!)"
+        }
+      }
+    },
+    "add_to_group": {
+      "name": "Add device to DALI group",
+      "description": "Add a DALI device to a specific group",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The ID of the DALI device to add to the group"
+        },
+        "group_id": {
+          "name": "Group ID",
+          "description": "The ID of the DALI group (0-15)"
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        }
+      }
+    },
+    "remove_from_group": {
+      "name": "Remove device from DALI group",
+      "description": "Remove a DALI device from a specific group",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The ID of the DALI device to remove from the group"
+        },
+        "group_id": {
+          "name": "Group ID",
+          "description": "The ID of the DALI group (0-15)"
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        }
+      }
+    },
+    "update_device_groups": {
+      "name": "Update device group memberships",
+      "description": "Set all group memberships for a DALI device (replaces existing memberships)",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The ID of the DALI device to update"
+        },
+        "groups": {
+          "name": "Groups",
+          "description": "List of group IDs (0-15) the device should belong to"
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        }
+      }
+    },
+    "set_fade_time": {
+      "name": "Set device fade time",
+      "description": "Set the fade time for a DALI device in seconds",
+      "fields": {
+        "device_id": {
+          "name": "Device ID",
+          "description": "The ID of the DALI device to set fade time for"
+        },
+        "fade_time": {
+          "name": "Fade Time",
+          "description": "Fade time in seconds (0.0 - 60.0)"
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        }
+      }
+    },
+    "set_group_fade_time": {
+      "name": "Set group fade time",
+      "description": "Set the fade time for a DALI group in seconds",
+      "fields": {
+        "group_id": {
+          "name": "Group ID",
+          "description": "The ID of the DALI group to set fade time for"
+        },
+        "fade_time": {
+          "name": "Fade Time",
+          "description": "Fade time in seconds (0.0 - 60.0)"
+        },
+        "entry_id": {
+          "name": "Entry ID",
+          "description": "Configuration entry ID of the DALI2 IoT device (optional, uses first device if not specified)"
+        }
+      }
+    }
+  }
+}
