@@ -80,10 +80,12 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
                 if device["host"] in configured_hosts
             ]
             for device in configured_devices:
-                device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
+                already_configured_text = self.hass.localize("component.dali2_iot.config.device_options.already_configured_suffix") or "Already configured"
+                device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - {already_configured_text}"
             
             # Always add manual entry option
-            device_options["manual"] = "Manual entry..."
+            manual_entry_text = self.hass.localize("component.dali2_iot.config.device_options.manual_entry") or "Manual entry..."
+            device_options["manual"] = manual_entry_text
             
             return self.async_show_form(
                 step_id="select",
@@ -179,10 +181,12 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             if device["host"] in configured_hosts
         ]
         for device in configured_devices:
-            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - Already configured"
+            already_configured_text = self.hass.localize("component.dali2_iot.config.device_options.already_configured_suffix") or "Already configured"
+            device_options[f"configured_{device['host']}"] = f"{device['name']} ({device['host']}) - {already_configured_text}"
         
         # Always add manual entry option
-        device_options["manual"] = "Manual entry..."
+        manual_entry_text = self.hass.localize("component.dali2_iot.config.device_options.manual_entry") or "Manual entry..."
+        device_options["manual"] = manual_entry_text
         
         return device_options
 

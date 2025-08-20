@@ -31,6 +31,10 @@
     },
     "abort": {
       "already_configured": "Gerät ist bereits konfiguriert"
+    },
+    "device_options": {
+      "manual_entry": "Manuelle Eingabe...",
+      "already_configured_suffix": "Bereits konfiguriert"
     }
   },
   "options": {
