@@ -1,13 +1,13 @@
 {
   "domain": "dali2_iot",
   "name": "DALI2 IoT",
-  "documentation": "https://github.com/spuky/lunatone-dali-integration",
-  "issue_tracker": "https://github.com/spuky/lunatone-dali-integration/issues",
-  "dependencies": [],
   "codeowners": ["@spuky"],
-  "requirements": ["aiohttp>=3.8.0", "async_timeout>=4.0.0"],
-  "version": "0.1.4",
-  "iot_class": "local_polling",
   "config_flow": true,
-  "integration_type": "device"
+  "dependencies": [],
+  "documentation": "https://github.com/spuky/lunatone-dali-integration",
+  "integration_type": "device",
+  "iot_class": "local_polling",
+  "issue_tracker": "https://github.com/spuky/lunatone-dali-integration/issues",
+  "requirements": ["aiohttp>=3.8.0", "async_timeout>=4.0.0"],
+  "version": "0.1.4"
 } 
