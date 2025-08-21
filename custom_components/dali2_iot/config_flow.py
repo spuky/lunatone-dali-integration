@@ -11,7 +11,7 @@ from homeassistant.data_entry_flow import FlowResult
 from homeassistant.helpers.aiohttp_client import async_get_clientsession
 import homeassistant.helpers.selector as selector
 
-from .const import DOMAIN, MANUAL_ENTRY_TRANSLATION_KEY
+from .const import DOMAIN, MANUAL_ENTRY_TRANSLATION_KEY, ALREADY_CONFIGURED_TRANSLATION_KEY
 from .device import Dali2IotDevice, Dali2IotConnectionError
 from .discovery import Dali2IotDiscovery
 
@@ -86,7 +86,7 @@ class Dali2IotConfigFlow(config_entries.ConfigFlow, domain=DOMAIN):
             for device in configured_devices:
                 selector_options.append({
                     "value": f"configured_{device['host']}",
-                    "label": f"{device['name']} ({device['host']}) - Already configured"
+                    "label": f"{device['name']} ({device['host']}) - {ALREADY_CONFIGURED_TRANSLATION_KEY}",
                 })
 
             # Always add manual entry option with translation key

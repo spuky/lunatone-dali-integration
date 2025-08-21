@@ -5,7 +5,9 @@
         "title": "Select DALI2 IoT Device",
         "description": "Choose from discovered devices or choose Manual entry",
         "data": {
-          "device": "Device"
+          "device": "Device",
+          "manual_entry": "Manual entry",
+          "already_configured": "Already configured"
         }
       },
       "manual": {
