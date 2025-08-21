@@ -31,4 +31,4 @@ ATTR_GROUPS: Final = "groups"
 
 # Config Flow Options
 MANUAL_ENTRY_TRANSLATION_KEY = "manual_entry"
-AlREADY_CONFIGURED_TRANSLATION_KEY = "already_configured"
+ALREADY_CONFIGURED_TRANSLATION_KEY = "already_configured"
