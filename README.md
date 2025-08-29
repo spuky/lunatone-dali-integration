@@ -64,7 +64,9 @@ A Home Assistant custom integration for controlling DALI2 IoT devices via networ
   - Add the URL of this repository: https://github.com/spuky/lunatone-dali-integration 
   - Select "Integration" as the category.
 2. Install "DALI2 IoT Integration" through HACS
-  [![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=spuky&repository=lunatone-dali-integration)
+
+[![Open your Home Assistant instance and open a repository inside the Home Assistant Community Store.](https://my.home-assistant.io/badges/hacs_repository.svg)](https://my.home-assistant.io/redirect/hacs_repository/?owner=spuky&repository=lunatone-dali-integration)
+
 3. Restart Home Assistant
 
 ### Manual Installation
