@@ -255,50 +255,90 @@ class Dali2IotDevice:
         self, device_id: int, data: dict[str, Any], fade_time: float | None = None
     ) -> bool:
         """Control device with optional fade time."""
-        # Convert standard commands to fade variants when fade_time is specified
-        if fade_time is not None:
-            fade_data = data.copy()
-            
-            # Convert to fade variants
-            if "dimmable" in data:
-                fade_data = {"dimmableWithFade": {"dimValue": data["dimmable"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "dimmable"})
-            elif "colorRGB" in data:
-                fade_data = {"colorRGBWithFade": {"color": data["colorRGB"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "colorRGB"})
-            elif "colorKelvin" in data:
-                fade_data = {"colorKelvinWithFade": {"color": data["colorKelvin"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "colorKelvin"})
-            else:
-                # Add fadeTime to existing data
-                fade_data["fadeTime"] = fade_time
-            
-            data = fade_data
+        if fade_time is None:
+            return await self.async_control_device(device_id, data)
 
-        return await self.async_control_device(device_id, data)
+        # Convert standard commands to fade variants according to Lunatone API
+        fade_data = {}
+        
+        # Handle switchable separately as it doesn't have a fade variant
+        if "switchable" in data:
+            fade_data["switchable"] = data["switchable"]
+        
+        # Convert dimmable to dimmableWithFade
+        if "dimmable" in data:
+            fade_data["dimmableWithFade"] = {
+                "dimValue": data["dimmable"],
+                "fadeTime": fade_time
+            }
+        
+        # Convert colorRGB to colorRGBWithFade
+        if "colorRGB" in data:
+            fade_data["colorRGBWithFade"] = {
+                "color": data["colorRGB"],
+                "fadeTime": fade_time
+            }
+        
+        # Convert colorKelvin to colorKelvinWithFade
+        if "colorKelvin" in data:
+            fade_data["colorKelvinWithFade"] = {
+                "color": data["colorKelvin"],
+                "fadeTime": fade_time
+            }
+        
+        # Copy any other attributes (scene, etc.) that don't have fade variants
+        for key, value in data.items():
+            if key not in ["dimmable", "colorRGB", "colorKelvin", "switchable"]:
+                fade_data[key] = value
+        
+        # If no fade-compatible commands were found, fall back to regular control
+        if not any(key.endswith("WithFade") for key in fade_data.keys()):
+            return await self.async_control_device(device_id, data)
+
+        return await self.async_control_device(device_id, fade_data)
 
     async def async_control_group_with_fade(
         self, group_id: int, data: dict[str, Any], fade_time: float | None = None, line: int | None = None
     ) -> bool:
         """Control group with optional fade time."""
-        # Convert standard commands to fade variants when fade_time is specified
-        if fade_time is not None:
-            fade_data = data.copy()
-            
-            # Convert to fade variants
-            if "dimmable" in data:
-                fade_data = {"dimmableWithFade": {"dimValue": data["dimmable"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "dimmable"})
-            elif "colorRGB" in data:
-                fade_data = {"colorRGBWithFade": {"color": data["colorRGB"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "colorRGB"})
-            elif "colorKelvin" in data:
-                fade_data = {"colorKelvinWithFade": {"color": data["colorKelvin"], "fadeTime": fade_time}}
-                fade_data.update({k: v for k, v in data.items() if k != "colorKelvin"})
-            else:
-                # Add fadeTime to existing data
-                fade_data["fadeTime"] = fade_time
-            
-            data = fade_data
+        if fade_time is None:
+            return await self.async_control_group(group_id, data, line)
 
-        return await self.async_control_group(group_id, data, line) 
+        # Convert standard commands to fade variants according to Lunatone API
+        fade_data = {}
+        
+        # Handle switchable separately as it doesn't have a fade variant
+        if "switchable" in data:
+            fade_data["switchable"] = data["switchable"]
+        
+        # Convert dimmable to dimmableWithFade
+        if "dimmable" in data:
+            fade_data["dimmableWithFade"] = {
+                "dimValue": data["dimmable"],
+                "fadeTime": fade_time
+            }
+        
+        # Convert colorRGB to colorRGBWithFade
+        if "colorRGB" in data:
+            fade_data["colorRGBWithFade"] = {
+                "color": data["colorRGB"],
+                "fadeTime": fade_time
+            }
+        
+        # Convert colorKelvin to colorKelvinWithFade
+        if "colorKelvin" in data:
+            fade_data["colorKelvinWithFade"] = {
+                "color": data["colorKelvin"],
+                "fadeTime": fade_time
+            }
+        
+        # Copy any other attributes (scene, etc.) that don't have fade variants
+        for key, value in data.items():
+            if key not in ["dimmable", "colorRGB", "colorKelvin", "switchable"]:
+                fade_data[key] = value
+        
+        # If no fade-compatible commands were found, fall back to regular control
+        if not any(key.endswith("WithFade") for key in fade_data.keys()):
+            return await self.async_control_group(group_id, data, line)
+
+        return await self.async_control_group(group_id, fade_data, line) 

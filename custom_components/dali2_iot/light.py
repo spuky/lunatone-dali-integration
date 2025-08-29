@@ -262,11 +262,11 @@ class Dali2IotLight(LightEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the light off."""
+        transition_time = kwargs.get(ATTR_TRANSITION)
+        
         # Optimistically update local state for immediate UI feedback
         self._optimistic_state["switchable"] = False
         self._optimistic_timestamp = time.time()
-        
-        # Optimistic state set (debug logging removed)
         
         # Force immediate UI update with optimistic state
         self.async_write_ha_state()
@@ -274,8 +274,13 @@ class Dali2IotLight(LightEntity):
         data = {"switchable": False}
         
         try:
-            # Send command to device
-            await self._coordinator.device.async_control_device(self._device_id, data)
+            # Send command to device - use fade-enabled control if transition is specified
+            if transition_time is not None:
+                await self._coordinator.device.async_control_device_with_fade(
+                    self._device_id, data, transition_time
+                )
+            else:
+                await self._coordinator.device.async_control_device(self._device_id, data)
             
             # Refresh coordinator data but keep optimistic state during grace period
             await self._coordinator.async_request_refresh()
@@ -511,6 +516,8 @@ class Dali2IotGroupLight(LightEntity):
 
     async def async_turn_off(self, **kwargs: Any) -> None:
         """Turn the group off."""
+        transition_time = kwargs.get(ATTR_TRANSITION)
+        
         # Optimistic update
         self._optimistic_state["switchable"] = False
         self._optimistic_timestamp = time.time()
@@ -520,8 +527,13 @@ class Dali2IotGroupLight(LightEntity):
         data = {"switchable": False}
         
         try:
-            # Send command to group
-            await self._coordinator.device.async_control_group(self._group_id, data)
+            # Send command to group - use fade-enabled control if transition is specified
+            if transition_time is not None:
+                await self._coordinator.device.async_control_group_with_fade(
+                    self._group_id, data, transition_time
+                )
+            else:
+                await self._coordinator.device.async_control_group(self._group_id, data)
             
             # Refresh coordinator data
             await self._coordinator.async_request_refresh()
