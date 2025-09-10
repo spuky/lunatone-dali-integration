@@ -55,6 +55,13 @@ async def async_setup_entry(hass: HomeAssistant, entry: ConfigEntry) -> bool:
 async def _async_setup_services(hass: HomeAssistant) -> None:
     """Set up services for the integration."""
     
+    def _find_device_id_by_address(coordinator, dali_address: int) -> int | None:
+        """Find internal device ID by DALI address."""
+        for device in coordinator._devices:
+            if device.get("address") == dali_address:
+                return device.get("id")
+        return None
+    
     async def async_scan_devices(call) -> None:
         """Service to scan for new DALI devices."""
         device_id = call.data.get("device_id")
@@ -88,7 +95,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
     
     async def async_add_to_group(call) -> None:
         """Service to add a device to a DALI group."""
-        device_id = call.data.get(ATTR_DEVICE_ID)
+        dali_address = call.data.get(ATTR_DEVICE_ID)  # Now expects DALI address
         group_id = call.data.get(ATTR_GROUP_ID)
         entry_id = call.data.get("entry_id")
         
@@ -106,19 +113,25 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error("No DALI2 IoT device found for group management")
             return
         
+        # Convert DALI address to internal device ID
+        internal_device_id = _find_device_id_by_address(coordinator, dali_address)
+        if internal_device_id is None:
+            _LOGGER.error("Device with DALI address %s not found", dali_address)
+            return
+        
         try:
-            _LOGGER.info("Adding device %s to group %s", device_id, group_id)
-            await coordinator.device.async_add_device_to_group(device_id, group_id)
+            _LOGGER.info("Adding device with DALI address %s (ID %s) to group %s", dali_address, internal_device_id, group_id)
+            await coordinator.device.async_add_device_to_group(internal_device_id, group_id)
             
             # Refresh coordinator data after group change
             await coordinator.async_request_refresh()
             
         except Exception as err:
-            _LOGGER.error("Failed to add device %s to group %s: %s", device_id, group_id, err)
+            _LOGGER.error("Failed to add device with DALI address %s to group %s: %s", dali_address, group_id, err)
 
     async def async_remove_from_group(call) -> None:
         """Service to remove a device from a DALI group."""
-        device_id = call.data.get(ATTR_DEVICE_ID)
+        dali_address = call.data.get(ATTR_DEVICE_ID)  # Now expects DALI address
         group_id = call.data.get(ATTR_GROUP_ID)
         entry_id = call.data.get("entry_id")
         
@@ -136,19 +149,25 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error("No DALI2 IoT device found for group management")
             return
         
+        # Convert DALI address to internal device ID
+        internal_device_id = _find_device_id_by_address(coordinator, dali_address)
+        if internal_device_id is None:
+            _LOGGER.error("Device with DALI address %s not found", dali_address)
+            return
+        
         try:
-            _LOGGER.info("Removing device %s from group %s", device_id, group_id)
-            await coordinator.device.async_remove_device_from_group(device_id, group_id)
+            _LOGGER.info("Removing device with DALI address %s (ID %s) from group %s", dali_address, internal_device_id, group_id)
+            await coordinator.device.async_remove_device_from_group(internal_device_id, group_id)
             
             # Refresh coordinator data after group change
             await coordinator.async_request_refresh()
             
         except Exception as err:
-            _LOGGER.error("Failed to remove device %s from group %s: %s", device_id, group_id, err)
+            _LOGGER.error("Failed to remove device with DALI address %s from group %s: %s", dali_address, group_id, err)
 
     async def async_update_device_groups(call) -> None:
         """Service to update all group memberships for a device."""
-        device_id = call.data.get(ATTR_DEVICE_ID)
+        dali_address = call.data.get(ATTR_DEVICE_ID)  # Now expects DALI address
         groups = call.data.get(ATTR_GROUPS, [])
         entry_id = call.data.get("entry_id")
         
@@ -166,19 +185,25 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error("No DALI2 IoT device found for group management")
             return
         
+        # Convert DALI address to internal device ID
+        internal_device_id = _find_device_id_by_address(coordinator, dali_address)
+        if internal_device_id is None:
+            _LOGGER.error("Device with DALI address %s not found", dali_address)
+            return
+        
         try:
-            _LOGGER.info("Updating device %s groups to %s", device_id, groups)
-            await coordinator.device.async_update_device_groups(device_id, groups)
+            _LOGGER.info("Updating device with DALI address %s (ID %s) groups to %s", dali_address, internal_device_id, groups)
+            await coordinator.device.async_update_device_groups(internal_device_id, groups)
             
             # Refresh coordinator data after group change
             await coordinator.async_request_refresh()
             
         except Exception as err:
-            _LOGGER.error("Failed to update device %s groups: %s", device_id, err)
+            _LOGGER.error("Failed to update device with DALI address %s groups: %s", dali_address, err)
 
     async def async_set_fade_time(call) -> None:
         """Service to set fade time for a device."""
-        device_id = call.data.get(ATTR_DEVICE_ID)
+        dali_address = call.data.get(ATTR_DEVICE_ID)  # Now expects DALI address
         fade_time = call.data.get(ATTR_FADE_TIME)
         entry_id = call.data.get("entry_id")
         
@@ -196,12 +221,18 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
             _LOGGER.error("No DALI2 IoT device found for fade time setting")
             return
         
+        # Convert DALI address to internal device ID
+        internal_device_id = _find_device_id_by_address(coordinator, dali_address)
+        if internal_device_id is None:
+            _LOGGER.error("Device with DALI address %s not found", dali_address)
+            return
+        
         try:
-            _LOGGER.info("Setting fade time for device %s to %s seconds", device_id, fade_time)
-            await coordinator.device.async_set_fade_time(device_id, fade_time)
+            _LOGGER.info("Setting fade time for device with DALI address %s (ID %s) to %s seconds", dali_address, internal_device_id, fade_time)
+            await coordinator.device.async_set_fade_time(internal_device_id, fade_time)
             
         except Exception as err:
-            _LOGGER.error("Failed to set fade time for device %s: %s", device_id, err)
+            _LOGGER.error("Failed to set fade time for device with DALI address %s: %s", dali_address, err)
 
     async def async_set_group_fade_time(call) -> None:
         """Service to set fade time for a group."""

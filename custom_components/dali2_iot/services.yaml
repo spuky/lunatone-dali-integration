@@ -21,8 +21,8 @@ add_to_group:
   description: Add a DALI device to a specific group
   fields:
     device_id:
-      name: Device ID
-      description: The ID of the DALI device to add to the group
+      name: DALI Address
+      description: The DALI address of the device to add to the group (0-63)
       required: true
       selector:
         number:
@@ -48,8 +48,8 @@ remove_from_group:
   description: Remove a DALI device from a specific group
   fields:
     device_id:
-      name: Device ID
-      description: The ID of the DALI device to remove from the group
+      name: DALI Address
+      description: The DALI address of the device to remove from the group (0-63)
       required: true
       selector:
         number:
@@ -75,8 +75,8 @@ update_device_groups:
   description: Set all group memberships for a DALI device (replaces existing memberships)
   fields:
     device_id:
-      name: Device ID
-      description: The ID of the DALI device to update
+      name: DALI Address
+      description: The DALI address of the device to update (0-63)
       required: true
       selector:
         number:
@@ -100,8 +100,8 @@ set_fade_time:
   description: Set the fade time for a DALI device in seconds
   fields:
     device_id:
-      name: Device ID
-      description: The ID of the DALI device to set fade time for
+      name: DALI Address
+      description: The DALI address of the device to set fade time for (0-63)
       required: true
       selector:
         number:
