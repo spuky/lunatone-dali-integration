@@ -73,9 +73,10 @@ class Dali2IotCoordinator(DataUpdateCoordinator):
                     }
                 
                 # Add device to group
+                device_address = device.get("address", device_id)  # Use DALI address, fallback to ID
                 groups[group_id]["members"].append({
-                    "id": device_id,
-                    "name": device.get("name", f"Device {device_id}"),
+                    "id": device_address,  # Use DALI address for group member ID
+                    "name": device.get("name", f"Device {device_address}"),
                     "features": device_features,
                 })
                 
