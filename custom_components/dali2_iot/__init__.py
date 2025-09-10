@@ -246,8 +246,8 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_ADD_TO_GROUP,
         async_add_to_group,
         schema=vol.Schema({
-            vol.Required(ATTR_DEVICE_ID): int,
-            vol.Required(ATTR_GROUP_ID): int,
+            vol.Required(ATTR_DEVICE_ID): vol.All(int, vol.Range(min=0, max=63)),
+            vol.Required(ATTR_GROUP_ID): vol.All(int, vol.Range(min=0, max=15)),
             vol.Optional("entry_id"): str,
         })
     )
@@ -257,8 +257,8 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_REMOVE_FROM_GROUP,
         async_remove_from_group,
         schema=vol.Schema({
-            vol.Required(ATTR_DEVICE_ID): int,
-            vol.Required(ATTR_GROUP_ID): int,
+            vol.Required(ATTR_DEVICE_ID): vol.All(int, vol.Range(min=0, max=63)),
+            vol.Required(ATTR_GROUP_ID): vol.All(int, vol.Range(min=0, max=15)),
             vol.Optional("entry_id"): str,
         })
     )
@@ -268,8 +268,8 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_UPDATE_DEVICE_GROUPS,
         async_update_device_groups,
         schema=vol.Schema({
-            vol.Required(ATTR_DEVICE_ID): int,
-            vol.Required(ATTR_GROUPS): [int],
+            vol.Required(ATTR_DEVICE_ID): vol.All(int, vol.Range(min=0, max=63)),
+            vol.Required(ATTR_GROUPS): [vol.All(int, vol.Range(min=0, max=15))],
             vol.Optional("entry_id"): str,
         })
     )
@@ -279,7 +279,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_SET_FADE_TIME,
         async_set_fade_time,
         schema=vol.Schema({
-            vol.Required(ATTR_DEVICE_ID): int,
+            vol.Required(ATTR_DEVICE_ID): vol.All(int, vol.Range(min=0, max=63)),
             vol.Required(ATTR_FADE_TIME): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=60.0)),
             vol.Optional("entry_id"): str,
         })
@@ -290,7 +290,7 @@ async def _async_setup_services(hass: HomeAssistant) -> None:
         SERVICE_SET_GROUP_FADE_TIME,
         async_set_group_fade_time,
         schema=vol.Schema({
-            vol.Required(ATTR_GROUP_ID): int,
+            vol.Required(ATTR_GROUP_ID): vol.All(int, vol.Range(min=0, max=15)),
             vol.Required(ATTR_FADE_TIME): vol.All(vol.Coerce(float), vol.Range(min=0.0, max=60.0)),
             vol.Optional("entry_id"): str,
         })
