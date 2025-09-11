@@ -76,8 +76,8 @@
       "description": "Ein DALI-Gerät zu einer bestimmten Gruppe hinzufügen",
       "fields": {
         "device_id": {
-          "name": "Geräte-ID",
-          "description": "Die ID des DALI-Geräts, das zur Gruppe hinzugefügt werden soll"
+          "name": "DALI-Adresse",
+          "description": "Die DALI-Adresse des Geräts, das zur Gruppe hinzugefügt werden soll (0-63)"
         },
         "group_id": {
           "name": "Gruppen-ID",
@@ -94,8 +94,8 @@
       "description": "Ein DALI-Gerät aus einer bestimmten Gruppe entfernen",
       "fields": {
         "device_id": {
-          "name": "Geräte-ID",
-          "description": "Die ID des DALI-Geräts, das aus der Gruppe entfernt werden soll"
+          "name": "DALI-Adresse",
+          "description": "Die DALI-Adresse des Geräts, das aus der Gruppe entfernt werden soll (0-63)"
         },
         "group_id": {
           "name": "Gruppen-ID",
@@ -112,8 +112,8 @@
       "description": "Alle Gruppenmitgliedschaften für ein DALI-Gerät setzen (ersetzt bestehende Mitgliedschaften)",
       "fields": {
         "device_id": {
-          "name": "Geräte-ID",
-          "description": "Die ID des zu aktualisierenden DALI-Geräts"
+          "name": "DALI-Adresse",
+          "description": "Die DALI-Adresse des zu aktualisierenden Geräts (0-63)"
         },
         "groups": {
           "name": "Gruppen",
@@ -130,8 +130,8 @@
       "description": "Die Überblendzeit für ein DALI-Gerät in Sekunden setzen",
       "fields": {
         "device_id": {
-          "name": "Geräte-ID",
-          "description": "Die ID des DALI-Geräts, für das die Überblendzeit gesetzt werden soll"
+          "name": "DALI-Adresse",
+          "description": "Die DALI-Adresse des Geräts, für das die Überblendzeit gesetzt werden soll (0-63)"
         },
         "fade_time": {
           "name": "Überblendzeit",
