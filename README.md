@@ -132,7 +132,7 @@ The integration provides services to manage which DALI groups devices belong to:
 ```yaml
 service: dali2_iot.add_to_group
 data:
-  device_id: 1      # DALI device ID (0-63)
+  device_id: 0      # DALI address (0-63) - matches device names like DALI#00
   group_id: 5       # DALI group ID (0-15)
 ```
 
@@ -140,7 +140,7 @@ data:
 ```yaml
 service: dali2_iot.remove_from_group
 data:
-  device_id: 1      # DALI device ID (0-63)
+  device_id: 0      # DALI address (0-63) - matches device names like DALI#00
   group_id: 5       # DALI group ID (0-15)
 ```
 
@@ -148,7 +148,7 @@ data:
 ```yaml
 service: dali2_iot.update_device_groups
 data:
-  device_id: 1      # DALI device ID (0-63)
+  device_id: 0      # DALI address (0-63) - matches device names like DALI#00
   groups: [1, 3, 5] # List of group IDs the device should belong to
 ```
 
@@ -171,7 +171,7 @@ DALI groups automatically appear as individual light entities in Home Assistant 
 #### **Group Entity Attributes**
 Each DALI group entity shows:
 - `dali_group_id`: The DALI group ID (0-15)
-- `dali_group_members`: List of member device IDs
+- `dali_group_members`: List of member DALI addresses (matches device names)
 - `dali_group_member_count`: Number of devices in the group
 - `dali_group_member_names`: Names of all member devices
 
@@ -226,7 +226,7 @@ Configure default fade time for devices and groups:
 # Set fade time for individual device
 service: dali2_iot.set_fade_time
 data:
-  device_id: 3        # DALI device ID
+  device_id: 3        # DALI address (0-63) - matches device names like DALI#03
   fade_time: 1.5      # Fade time in seconds (0.0 - 60.0)
 
 # Set fade time for entire group
