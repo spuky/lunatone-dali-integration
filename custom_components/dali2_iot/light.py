@@ -26,6 +26,75 @@ from .coordinator import Dali2IotCoordinator
 
 _LOGGER = logging.getLogger(__name__)
 
+
+# DALI logarithmic curve table: Translate HA linear brightness (0-255) to Lunatone inverse DALI percentage
+LUNATONE_PERCENT_BY_STEP: list[float] = [
+     0.00, 20.08, 29.92, 35.83, 39.76, 43.31, 45.67, 48.03, 50.00, 51.57, 53.15,
+    54.33, 55.91, 56.69, 57.87, 59.06, 59.84, 60.63, 61.42, 62.20, 62.99, 63.78,
+    64.57, 64.96, 65.75, 66.14, 66.93, 67.32, 68.11, 68.50, 68.90, 69.29, 69.69,
+    70.47, 70.87, 71.26, 71.65, 72.05, 72.44, 72.83, 73.23, 73.62, 73.62, 74.02,
+    74.41, 74.80, 75.20, 75.59, 75.59, 75.98, 76.38, 76.77, 76.77, 77.17, 77.56,
+    77.56, 77.95, 78.35, 78.35, 78.74, 79.13, 79.13, 79.53, 79.53, 79.92, 79.92,
+    80.31, 80.71, 80.71, 81.10, 81.10, 81.50, 81.50, 81.89, 81.89, 82.28, 82.28,
+    82.68, 82.68, 83.07, 83.07, 83.07, 83.46, 83.46, 83.86, 83.86, 84.25, 84.25,
+    84.65, 84.65, 84.65, 85.04, 85.04, 85.43, 85.43, 85.43, 85.83, 85.83, 85.83,
+    86.22, 86.22, 86.61, 86.61, 86.61, 87.01, 87.01, 87.01, 87.40, 87.40, 87.40,
+    87.80, 87.80, 87.80, 88.19, 88.19, 88.19, 88.58, 88.58, 88.58, 88.98, 88.98,
+    88.98, 88.98, 89.37, 89.37, 89.37, 89.76, 89.76, 89.76, 90.16, 90.16, 90.16,
+    90.16, 90.55, 90.55, 90.55, 90.55, 90.94, 90.94, 90.94, 91.34, 91.34, 91.34,
+    91.34, 91.73, 91.73, 91.73, 91.73, 92.13, 92.13, 92.13, 92.13, 92.52, 92.52,
+    92.52, 92.52, 92.91, 92.91, 92.91, 92.91, 92.91, 93.31, 93.31, 93.31, 93.31,
+    93.70, 93.70, 93.70, 93.70, 93.70, 94.09, 94.09, 94.09, 94.09, 94.49, 94.49,
+    94.49, 94.49, 94.49, 94.88, 94.88, 94.88, 94.88, 94.88, 95.28, 95.28, 95.28,
+    95.28, 95.28, 95.67, 95.67, 95.67, 95.67, 95.67, 95.67, 96.06, 96.06, 96.06,
+    96.06, 96.06, 96.46, 96.46, 96.46, 96.46, 96.46, 96.85, 96.85, 96.85, 96.85,
+    96.85, 96.85, 97.24, 97.24, 97.24, 97.24, 97.24, 97.24, 97.64, 97.64, 97.64,
+    97.64, 97.64, 97.64, 98.03, 98.03, 98.03, 98.03, 98.03, 98.03, 98.43, 98.43,
+    98.43, 98.43, 98.43, 98.43, 98.82, 98.82, 98.82, 98.82, 98.82, 98.82, 98.82,
+    99.21, 99.21, 99.21, 99.21, 99.21, 99.21, 99.21, 99.61, 99.61, 99.61, 99.61,
+    99.61, 99.61, 100.00
+]
+
+def _lunatone_to_brightness(percent: float) -> int:
+    """Map device percent (0-100) to HA brightness (0-255) using nearest DALI step.
+
+    Example: 90 -> 127 (50%)
+    """
+
+
+    if percent <= 0.0:
+        return 0
+    if percent >= 100.0:
+        return 255
+    import bisect
+    pos = bisect.bisect_left(LUNATONE_PERCENT_BY_STEP, percent)
+    left = max(pos - 1, 0)
+    right = min(pos, 255)
+    step = right if abs(LUNATONE_PERCENT_BY_STEP[right] - percent) < abs(LUNATONE_PERCENT_BY_STEP[left] - percent) else left
+
+
+    return int(step)
+
+def _brightness_to_lunatone(brightness: int) -> float:
+    """Map HA brightness (0-255) to Lunatone brightness value.
+
+    Brightness 255 is coerced to step 100.
+    """
+
+
+    if brightness <= 0:
+        return 0.0
+    if brightness >= 255:
+        step = 255
+    else:
+        step = max(0, min(255, brightness))
+
+
+    return LUNATONE_PERCENT_BY_STEP[step]
+
+
+
+
 async def async_setup_entry(
     hass: HomeAssistant,
     entry: ConfigEntry,
@@ -165,7 +234,7 @@ class Dali2IotLight(LightEntity):
             features = current_device["features"]
             if "dimmable" in features:
                 dim_value = features["dimmable"].get("status", 0)
-                return int(dim_value * 2.55)  # Convert 0-100 to 0-255
+                return _lunatone_to_brightness(dim_value)  # Convert 0-100 to 0-255
         return None
 
     @property
@@ -217,12 +286,13 @@ class Dali2IotLight(LightEntity):
         # Prepare command data - only send switchable if light is off or explicit turn on
         data = {}
         
-        # Only send switchable=True if light is currently off or it's not just a brightness change
-        if not current_is_on or not brightness_only:
-            data["switchable"] = True
+        # Only send switchable=True if light is currently off or it's not just a brightness change, setting a brightness turns the light implicitly on
+        if (not current_is_on or not brightness_only) and not ATTR_BRIGHTNESS in kwargs:
+            data["gotoLastActive"] = True # Trun on at last active brightness level 
+        #    data["switchable"] = True
         
         if ATTR_BRIGHTNESS in kwargs:
-            data["dimmable"] = kwargs[ATTR_BRIGHTNESS] / 2.55
+            data["dimmable"] = _brightness_to_lunatone(kwargs[ATTR_BRIGHTNESS])
             
         if ATTR_RGB_COLOR in kwargs:
             r, g, b = kwargs[ATTR_RGB_COLOR]
@@ -418,7 +488,7 @@ class Dali2IotGroupLight(LightEntity):
                     features = device["features"]
                     if "dimmable" in features:
                         dim_value = features["dimmable"].get("status", 0)
-                        brightness_values.append(int(dim_value * 2.55))
+                        brightness_values.append(_lunatone_to_brightness(dim_value))
             
             if brightness_values:
                 return int(sum(brightness_values) / len(brightness_values))
@@ -474,12 +544,13 @@ class Dali2IotGroupLight(LightEntity):
         # Prepare command data - only send switchable if group is off or explicit turn on
         data = {}
         
-        # Only send switchable=True if group is currently off or it's not just a brightness change
-        if not current_is_on or not brightness_only:
-            data["switchable"] = True
+        # Only send switchable=True if group is currently off or it's not just a brightness change, setting a brightness turns the light implicitly on
+        if (not current_is_on or not brightness_only) and not ATTR_BRIGHTNESS in kwargs:
+            data["gotoLastActive"] = True # Trun on at last active brightness level 
+        #    data["switchable"] = True
         
         if ATTR_BRIGHTNESS in kwargs:
-            data["dimmable"] = kwargs[ATTR_BRIGHTNESS] / 2.55
+            data["dimmable"] = _brightness_to_lunatone(kwargs[ATTR_BRIGHTNESS])
             
         if ATTR_RGB_COLOR in kwargs:
             r, g, b = kwargs[ATTR_RGB_COLOR]
